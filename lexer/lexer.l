@@ -15,6 +15,7 @@ opchar [!#%&*+-/:<=>?@\^|~]
 printableChar [\x20-\x7E]
 UnicodeEscape \\u+{hexDigit}{4}
 hexDigit {digit}|[a-fA-F]
+binaryDigit [01]
 charEscapeSeq \\[btnfr"'\]
 escapeSeq {UnicodeEscape}|{charEscapeSeq}
 
@@ -27,13 +28,20 @@ idrest ({letter}|{digit})*(\_{op})?
 quoteId \'{alphaid}
 spliceId \${alphaid}
 
-integerLiteral ({decimalNumeral}|{hexNumeral}|{binaryNumeral})[Ll]?
-decimalNumeral 0|{digit}(({digit}|\_)*{digit})?
-hexNumeral 0[xX]{hexDigit}(({hexDigit|\_)*{hexDigit})?
-binaryNumeral 0[bB]{binaryDigit}(({binaryDigit}|\_)*{binaryDigit})?
+charNoQuoteOrNewline [\x20-\x26\x28-\x7E]
+charNoDoubleQuoteOrNewline [\x20-\x21\x23-\x7E]
+charNoDoubleQuote [^"]
+charNoBackQuoteOrNewline [\x20-\x5F\x61-\x7E]
 
-floatingPointLiteral {decimalNumeral}?\.{digit}(({digit}|\_)*{digit})?{exponentPart}?{floatType}?|{decimalNumeral}{exponentPart}{floatType}?|{decimalNumeral}{floatType}
-exponentPart [eE][+-]?{digit}(({digit}|\_)*{digit})?
+integerLiteral ({decimalNumeral}|{hexNumeral}|{binaryNumeral})[Ll]?
+decimalNumeral 0|[1-9]{decimalBody}?
+hexNumeral 0[xX]({hexDigit|\_)*{hexDigit}
+binaryNumeral 0[bB]({binaryDigit}|\_)*{binaryDigit}
+
+decimalBody (({digit}|\_)*{digit})
+
+floatingPointLiteral {decimalNumeral}?\.{digit}{decimalBody}?{exponentPart}?{floatType}?|{decimalNumeral}{exponentPart}{floatType}?|{decimalNumeral}{floatType}
+exponentPart [eE][+-]?{digit}{decimalBody}?
 floatType [fFdD]
 
 booleanLiteral true|false
@@ -44,8 +52,8 @@ stringLiteral \"{stringElement}*\"|\"{3}{multiLineChars}\"{3}
 stringElement {charNoDoubleQuoteOrNewline}|{escapeSeq}
 multiLineChars (\"?\"?{charNoDoubleQuote})*\"*
 
-interpolatedString {alphaid}\"(\\?{interpolatedStringPart}|\\\\|\\\")*\"|{alphaid}\"{3}(\"?\"?{char}\\(\"|\\\$)|{escape})*\"*\"{3}
-interpolatedStringPart {printableChar}\\["$\]|{escape}
+interpolatedString {alphaid}\"(\\?{interpolatedStringPart}|\\\\|\\\")*\"|{alphaid}\"{3}(\"?\"?([^"\\]|\\/[^$])|{escape})*\"*\"{3}
+interpolatedStringPart [\x20-\x21\x23\x25-\x5B\x5D-\x7E]|escape
 escape \\\$(\\\$|\"\|{alphaid}|{BlockExpr})
 alphaid {upper}{idrest}|{varid}
 
