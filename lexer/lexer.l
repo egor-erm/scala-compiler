@@ -5,61 +5,94 @@
 %}
 
 whitespace [ \t\r\n]
+nl \n
+
 upper [A-Z$]
 lower [a-z_]
 letter {upper}|{lower}
 digit [0-9]
+
 paren [()[]{}]
 delim [`'";.,]
-opchar [!#%&*+-/:<=>?@\^|~]
-printableChar [\x20-\x7E]
-UnicodeEscape \\u+{hexDigit}{4}
-hexDigit {digit}|[a-fA-F]
-binaryDigit [01]
-charEscapeSeq \\[btnfr"'\]
-escapeSeq {UnicodeEscape}|{charEscapeSeq}
 
-op {opchar}+
+opid [!#%&*+-/:<=>?@\^|~]+
+idrest ({letter}|{digit})*(\_{opid})?
 varid {lower}{idrest}
 boundvarid {varid}|\`{varid}\`
-plainid {alphaid}|{op}
+alphaid {upper}{idrest}|{varid}
+plainid {alphaid}|{opid}
 id {plainid}|\`({charNoBackQuoteOrNewline}|{escapeSeq})*\`
-idrest ({letter}|{digit})*(\_{op})?
 quoteId \'{alphaid}
 spliceId \${alphaid}
 
-charNoQuoteOrNewline [\x20-\x26\x28-\x7E]
-charNoDoubleQuoteOrNewline [\x20-\x21\x23-\x7E]
-charNoDoubleQuote [^"]
-charNoBackQuoteOrNewline [\x20-\x5F\x61-\x7E]
+decimalBody (\_*{digit})*
+decimalNumeral {digit}{decimalBody}
 
-integerLiteral ({decimalNumeral}|{hexNumeral}|{binaryNumeral})[Ll]?
-decimalNumeral 0|[1-9]{decimalBody}?
-hexNumeral 0[xX]({hexDigit|\_)*{hexDigit}
-binaryNumeral 0[bB]({binaryDigit}|\_)*{binaryDigit}
+hexDigit {digit}|[a-fA-F]
+hexNumeral 0[xX](\_*{hexDigit})+
 
-decimalBody (({digit}|\_)*{digit})
+binaryDigit [01]
+binaryNumeral 0[bB](\_*{binaryDigit})+
 
-floatingPointLiteral {decimalNumeral}?\.{digit}{decimalBody}?{exponentPart}?{floatType}?|{decimalNumeral}{exponentPart}{floatType}?|{decimalNumeral}{floatType}
-exponentPart [eE][+-]?{digit}{decimalBody}?
 floatType [fFdD]
 
+decimalFraction {decimalNumeral}\.{decimalNumeral}?|\.{decimalNumeral}
+mantissa {decimalNumeral}|{decimalFraction}
+exponentPart [eE][+-]?{decimalNumeral}
+expDecimal {mantissa}{exponentPart}
+
+integerLiteral ({decimalNumeral}|{hexNumeral}|{binaryNumeral})[Ll]?
+floatingPointLiteral ({decimalNumeral}|{expDecimal}){floatType}?|{decimalNumeral}{floatType}
 booleanLiteral true|false
 
-characterLiteral \'({charNoQuoteOrNewline}|{escapeSeq})\'
+UnicodeEscape \\u+{hexDigit}{4}
+charEscapeSeq \\[btnfr"'\]
+escapeSeq {UnicodeEscape}|{charEscapeSeq}
 
-stringLiteral \"{stringElement}*\"|\"{3}{multiLineChars}\"{3}
-stringElement {charNoDoubleQuoteOrNewline}|{escapeSeq}
-multiLineChars (\"?\"?{charNoDoubleQuote})*\"*
-
-interpolatedString {alphaid}\"(\\?{interpolatedStringPart}|\\\\|\\\")*\"|{alphaid}\"{3}(\"?\"?([^"\\]|\\/[^$])|{escape})*\"*\"{3}
-interpolatedStringPart [\x20-\x21\x23\x25-\x5B\x5D-\x7E]|escape
-escape \\\$(\\\$|\"\|{alphaid}|{BlockExpr})
-alphaid {upper}{idrest}|{varid}
-
-comment \/\*([^*]|\*+[^*/])*\*+\/|\/\/[^\n]* 
-
-nl \n
 semi \;|{nl}+
+
+=== diff modes ===
+
+	characterLiteral \'({charNoQuoteOrNewline}|{escapeSeq})\'
+	
+	stringLiteral \"{stringElement}*\"
+	\" { BEGIN(STRING); }
+	<STRING>
+	{
+		\" { BEGIN(INITIAL); /*возввращаем строку*/; }
+	}
+	
+	\"{3} { BEGIN(MULTILINE); }
+	<MULTILINE>
+	{
+		\"{3} { BEGIN(INITIAL); /*возввращаем строку*/ }
+		[^"]+ { /*пишем в строку*/ }
+		\"[^"] { /*пишем в строку*/ }
+		\"\"[^"] { /*пишем в строку*/ }
+	}
+	
+	===\\\===
+	interpolatedString {alphaid}\"(\\?{interpolatedStringPart}|\\\\|\\\")*\"|{alphaid}\"{3}(\"?\"?([^"\\]|\\/[^$])|{escape})*\"*\"{3}
+	===\\\===
+	INTERP_START — после alphaid"
+	INTERP_MIDDLE — между $...$
+	INTERP_BLOCK — внутри ${...}
+	===\\\===
+
+	=== deprecated ===
+	
+		symbolLiteral \'{idrest}
+		
+	=== deprecated ===
+
+	stringElement {charNoDoubleQuoteOrNewline}|{escapeSeq}
+	multiLineChars (\"?\"?{charNoDoubleQuote})*\"*
+
+	interpolatedStringPart [\x20-\x21\x23\x25-\x5B\x5D-\x7E]|{escape}
+	escape \\\$(\\\$|\"\|{alphaid}|{BlockExpr})
+
+	comment \/\*([^*]|\*+[^*/])*\*+\/|\/\/[^\n]*
+
+=== diff modes ===
 
 %%
