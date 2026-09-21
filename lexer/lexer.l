@@ -1,65 +1,190 @@
+%option c++
 %option noyywrap 
 %option never-interactive
 
+%x STRING
+
 %{
+    #include <iostream>
+    #include <fstream>
+    #include <string>
+    #include <cstdlib>
+    using namespace std;
+
+    static string stringBuffer;
+
+    void printLiteral(string type, string literal);
+    void printType(string type);
+    void printKeyword(string keyword);
+    void printOperator(string op);
+
+    string normalizeNumber(string str);
 %}
 
-whitespace [ \t\r\n]
-upper [A-Z$]
-lower [a-z_]
-letter {upper}|{lower}
-digit [0-9]
-paren [()[]{}]
-delim [`'";.,]
-opchar [!#%&*+-/:<=>?@\^|~]
-printableChar [\x20-\x7E]
-UnicodeEscape \\u+{hexDigit}{4}
-hexDigit {digit}|[a-fA-F]
-binaryDigit [01]
-charEscapeSeq \\[btnfr"'\]
-escapeSeq {UnicodeEscape}|{charEscapeSeq}
+LETTER [a-zA-Z_]
+DIGIT [0-9]
+NON_ZERO_DIGIT [1-9]
+BIN_DIGIT [01]
+HEX_DIGIT [0-9a-fA-F]
 
-op {opchar}+
-varid {lower}{idrest}
-boundvarid {varid}|\`{varid}\`
-plainid {alphaid}|{op}
-id {plainid}|\`({charNoBackQuoteOrNewline}|{escapeSeq})*\`
-idrest ({letter}|{digit})*(\_{op})?
-quoteId \'{alphaid}
-spliceId \${alphaid}
+NUMBER {DIGIT}("_"*{DIGIT})*
+EXP [eE][+-]?{NUMBER}
 
-charNoQuoteOrNewline [\x20-\x26\x28-\x7E]
-charNoDoubleQuoteOrNewline [\x20-\x21\x23-\x7E]
-charNoDoubleQuote [^"]
-charNoBackQuoteOrNewline [\x20-\x5F\x61-\x7E]
+WHITESPACE [ \t\r\n]
+COMMENT "//"[^\n]*|"/*"([^*]|\*+[^*/])*\*+"/"
 
-integerLiteral ({decimalNumeral}|{hexNumeral}|{binaryNumeral})[Ll]?
-decimalNumeral 0|[1-9]{decimalBody}?
-hexNumeral 0[xX]({hexDigit|\_)*{hexDigit}
-binaryNumeral 0[bB]({binaryDigit}|\_)*{binaryDigit}
+OPCHAR [!#%&*+\-/:<=>?@\\^|~]
+OP {OPCHAR}+ 
 
-decimalBody (({digit}|\_)*{digit})
-
-floatingPointLiteral {decimalNumeral}?\.{digit}{decimalBody}?{exponentPart}?{floatType}?|{decimalNumeral}{exponentPart}{floatType}?|{decimalNumeral}{floatType}
-exponentPart [eE][+-]?{digit}{decimalBody}?
-floatType [fFdD]
-
-booleanLiteral true|false
-
-characterLiteral \'({charNoQuoteOrNewline}|{escapeSeq})\'
-
-stringLiteral \"{stringElement}*\"|\"{3}{multiLineChars}\"{3}
-stringElement {charNoDoubleQuoteOrNewline}|{escapeSeq}
-multiLineChars (\"?\"?{charNoDoubleQuote})*\"*
-
-interpolatedString {alphaid}\"(\\?{interpolatedStringPart}|\\\\|\\\")*\"|{alphaid}\"{3}(\"?\"?([^"\\]|\\/[^$])|{escape})*\"*\"{3}
-interpolatedStringPart [\x20-\x21\x23\x25-\x5B\x5D-\x7E]|escape
-escape \\\$(\\\$|\"\|{alphaid}|{BlockExpr})
-alphaid {upper}{idrest}|{varid}
-
-comment \/\*([^*]|\*+[^*/])*\*+\/|\/\/[^\n]* 
-
-nl \n
-semi \;|{nl}+
+IDREST ({LETTER}|{DIGIT})*("_" {OP})? /* хвост имени */
+VARID [a-z_]{IDREST} /* variable (переменная, функция, метод) */
+CONID [A-Z]{IDREST} /*constructor identifier (класс, объект, тип) */
 
 %%
+
+{WHITESPACE}+        { /* пропуск пробелов */ }
+
+{COMMENT}            { /* пропуск комментариев */ }
+
+{NUMBER}    { printLiteral("int", normalizeNumber(YYText())); }
+
+
+Int     { printType(YYText()); }
+Double  { printType(YYText()); }
+String  { printType(YYText()); }
+Char    { printType(YYText()); }
+Array   { printType(YYText()); }
+Unit    { printType(YYText()); } /* аналог void */
+
+abstract    { printKeyword(YYText()); }
+case        { printKeyword(YYText()); }
+catch       { printKeyword(YYText()); }
+class       { printKeyword(YYText()); }
+def         { printKeyword(YYText()); }
+do          { printKeyword(YYText()); }
+else        { printKeyword(YYText()); }
+enum        { printKeyword(YYText()); }
+export      { printKeyword(YYText()); }
+extends     { printKeyword(YYText()); }
+false       { printKeyword(YYText()); }
+final       { printKeyword(YYText()); }
+finally     { printKeyword(YYText()); }
+for         { printKeyword(YYText()); }
+given       { printKeyword(YYText()); }
+if          { printKeyword(YYText()); }
+implicit    { printKeyword(YYText()); }
+import      { printKeyword(YYText()); }
+lazy        { printKeyword(YYText()); }
+match       { printKeyword(YYText()); }
+new         { printKeyword(YYText()); }
+null        { printKeyword(YYText()); }
+object      { printKeyword(YYText()); }
+override    { printKeyword(YYText()); }
+package     { printKeyword(YYText()); }
+private     { printKeyword(YYText()); }
+protected   { printKeyword(YYText()); }
+return      { printKeyword(YYText()); }
+sealed      { printKeyword(YYText()); }
+super       { printKeyword(YYText()); }
+then        { printKeyword(YYText()); }
+throw       { printKeyword(YYText()); }
+trait       { printKeyword(YYText()); }
+true        { printKeyword(YYText()); }
+try         { printKeyword(YYText()); }
+type        { printKeyword(YYText()); }
+val         { printKeyword(YYText()); }
+var         { printKeyword(YYText()); }
+while       { printKeyword(YYText()); }
+with        { printKeyword(YYText()); }
+yield       { printKeyword(YYText()); }
+
+"?=>"       { printKeyword(YYText()); }
+"=>>"       { printKeyword(YYText()); }
+"=>"        { printKeyword(YYText()); }
+"<-"        { printKeyword(YYText()); }
+"<:"        { printKeyword(YYText()); }
+">:"        { printKeyword(YYText()); }
+"="         { printKeyword(YYText()); }
+":"         { printKeyword(YYText()); }
+"#"         { printKeyword(YYText()); }
+"@"         { printKeyword(YYText()); }
+
+"+"     { printOperator(YYText()); }
+"-"     { printOperator(YYText()); }
+"*"     { printOperator(YYText()); }
+"/"     { printOperator(YYText()); }
+"%"     { printOperator(YYText()); }
+
+"=="    { printOperator(YYText()); }
+"!="    { printOperator(YYText()); }
+">"     { printOperator(YYText()); }
+"<"     { printOperator(YYText()); }
+">="    { printOperator(YYText()); }
+"<="    { printOperator(YYText()); }
+
+\"                   { stringBuffer = ""; BEGIN(STRING); }
+<STRING>[^\\"\n]+    { stringBuffer += YYText(); }
+<STRING>\\n          { stringBuffer += '\n'; }
+<STRING>\\\\         { stringBuffer += '\\'; }
+<STRING>\\\"         { stringBuffer += '"'; }
+
+<STRING>\\t          { stringBuffer += '\t'; }
+<STRING>\\r          { stringBuffer += '\r'; }
+<STRING>\\b          { stringBuffer += '\b'; }
+<STRING>\\f          { stringBuffer += '\f'; }
+
+<STRING>\"           { printLiteral("string", stringBuffer);
+                       BEGIN(INITIAL); }
+
+<STRING>\n           { cerr << "ERROR: EOL in string" << endl;
+                       BEGIN(INITIAL); }
+
+%%
+
+int main(int argc, char** argv) {
+    if (argc < 2) {
+        cerr << "Usage: " << argv[0] << " <file.scala>" << endl;
+        return 1;
+    }
+
+    ifstream in(argv[1]);
+    if (!in) {
+        cerr << "Cannot open file: " << argv[1] << endl;
+        return 1;
+    }
+
+    yyFlexLexer lexer(&in, &cout);
+    lexer.yylex();
+
+    return 0;
+}
+
+void printLiteral(string type, string literal) {
+    cout << type << " literal: " << literal << endl;
+}
+
+void printType(string type) {
+    cout << "type: " << type << endl;
+}
+
+void printKeyword(string keyword) {
+    cout << "keyword: " << keyword << endl;
+}
+
+void printOperator(string op) {
+    cout << "operator: " << op << endl;
+}
+
+string normalizeNumber(const string s) {
+    string result;
+
+    result.reserve(s.size());
+    for (char c : s) {
+        if (c != '_') result += c;
+    }
+
+    int i = 0;
+    while (i + 1 < result.size() && result[i] == '0') i++;
+
+    return result.substr(i);
+}
