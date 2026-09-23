@@ -17,11 +17,19 @@
     void printType(string type);
     void printKeyword(string keyword);
     void printOperator(string op);
+    void printIdentificator(string id);
+    void printSeparator(string separator);
 
-    string normalizeNumber(string str);
+    string stripUnderscores(string s);
+    string stripSuffix(string s, string chars);
+    string normalizeInt(string s);
+    string normalizeBinInt(string s);
+    string normalizeHexInt(string s);
+    string normalizeDouble(string s);
+
 %}
 
-LETTER [a-zA-Z_]
+LETTER [a-zA-Z_$]
 DIGIT [0-9]
 NON_ZERO_DIGIT [1-9]
 BIN_DIGIT [01]
@@ -29,6 +37,12 @@ HEX_DIGIT [0-9a-fA-F]
 
 NUMBER {DIGIT}("_"*{DIGIT})*
 EXP [eE][+-]?{NUMBER}
+FLOAT_TYPE [fFdD]
+
+HEX_LITERAL 0(x|X)(_*{HEX_DIGIT})*
+BIN_LITERAL 0(b|B)(_*{BIN_DIGIT})*
+
+FLOATING_POINT_LITERAL {NUMBER}?"\."{DIGIT}(_*{DIGIT})*{EXP}?{FLOAT_TYPE}?|{NUMBER}{EXP}{FLOAT_TYPE}?|{NUMBER}{FLOAT_TYPE}
 
 WHITESPACE [ \t\r\n]
 COMMENT "//"[^\n]*|"/*"([^*]|\*+[^*/])*\*+"/"
@@ -36,18 +50,20 @@ COMMENT "//"[^\n]*|"/*"([^*]|\*+[^*/])*\*+"/"
 OPCHAR [!#%&*+\-/:<=>?@\\^|~]
 OP {OPCHAR}+ 
 
-IDREST ({LETTER}|{DIGIT})*("_" {OP})? /* хвост имени */
-VARID [a-z_]{IDREST} /* variable (переменная, функция, метод) */
-CONID [A-Z]{IDREST} /*constructor identifier (класс, объект, тип) */
+/* хвост имени */
+IDREST ({LETTER}|{DIGIT})*(_{OP})?
+
+/* variable */
+VARID [a-z_]{IDREST}
+
+/*constructor identifier (класс, объект, тип) */
+CONID [A-Z]{IDREST}
 
 %%
 
 {WHITESPACE}+        { /* пропуск пробелов */ }
 
 {COMMENT}            { /* пропуск комментариев */ }
-
-{NUMBER}    { printLiteral("int", normalizeNumber(YYText())); }
-
 
 Int     { printType(YYText()); }
 Double  { printType(YYText()); }
@@ -56,7 +72,7 @@ Char    { printType(YYText()); }
 Array   { printType(YYText()); }
 Unit    { printType(YYText()); } /* аналог void */
 
-abstract    { printKeyword(YYText()); }
+abstract    { printKeyword(YYText()); } /* Regular keywords */
 case        { printKeyword(YYText()); }
 catch       { printKeyword(YYText()); }
 class       { printKeyword(YYText()); }
@@ -104,12 +120,41 @@ yield       { printKeyword(YYText()); }
 "<-"        { printKeyword(YYText()); }
 "<:"        { printKeyword(YYText()); }
 ">:"        { printKeyword(YYText()); }
-"="         { printKeyword(YYText()); }
 ":"         { printKeyword(YYText()); }
 "#"         { printKeyword(YYText()); }
 "@"         { printKeyword(YYText()); }
 
-"+"     { printOperator(YYText()); }
+as          { printKeyword(YYText()); } /* Soft keywords */
+derives     { printKeyword(YYText()); }
+end         { printKeyword(YYText()); }
+extension   { printKeyword(YYText()); }
+infix       { printKeyword(YYText()); }
+inline      { printKeyword(YYText()); }
+opaque      { printKeyword(YYText()); }
+open        { printKeyword(YYText()); }
+transparent { printKeyword(YYText()); }
+using       { printKeyword(YYText()); }
+
+{FLOATING_POINT_LITERAL}    { printLiteral("double", normalizeDouble(YYText())); }
+
+{NUMBER}                    { printLiteral("int", normalizeInt(YYText())); }
+{BIN_LITERAL}               { printLiteral("int", normalizeBinInt(YYText())); }
+{HEX_LITERAL}               { printLiteral("int", normalizeHexInt(YYText())); }
+
+{VARID}     { printIdentificator(YYText()); }
+{CONID}     { printIdentificator(YYText()); }
+
+"("         { printSeparator(YYText()); } /* Разделители */
+")"         { printSeparator(YYText()); }
+"["         { printSeparator(YYText()); }
+"]"         { printSeparator(YYText()); }
+"{"         { printSeparator(YYText()); }
+"}"         { printSeparator(YYText()); }
+","         { printSeparator(YYText()); }
+";"         { printSeparator(YYText()); }
+"."         { printSeparator(YYText()); }
+
+"+"     { printOperator(YYText()); } /* Операторы */
 "-"     { printOperator(YYText()); }
 "*"     { printOperator(YYText()); }
 "/"     { printOperator(YYText()); }
@@ -121,6 +166,18 @@ yield       { printKeyword(YYText()); }
 "<"     { printOperator(YYText()); }
 ">="    { printOperator(YYText()); }
 "<="    { printOperator(YYText()); }
+
+"="     { printOperator(YYText()); }
+"+="    { printOperator(YYText()); }
+"-="    { printOperator(YYText()); }
+"*="    { printOperator(YYText()); }
+"/="    { printOperator(YYText()); }
+"%="    { printOperator(YYText()); }
+"<<="   { printOperator(YYText()); }
+">>="   { printOperator(YYText()); }
+"&="    { printOperator(YYText()); }
+"^="    { printOperator(YYText()); }
+"|="    { printOperator(YYText()); }
 
 \"                   { stringBuffer = ""; BEGIN(STRING); }
 <STRING>[^\\"\n]+    { stringBuffer += YYText(); }
@@ -138,6 +195,8 @@ yield       { printKeyword(YYText()); }
 
 <STRING>\n           { cerr << "ERROR: EOL in string" << endl;
                        BEGIN(INITIAL); }
+
+<*>.     { cerr << "Unexpected char \'" << YYText()[0] << "\'" << endl; BEGIN(INITIAL);}
 
 %%
 
@@ -175,16 +234,117 @@ void printOperator(string op) {
     cout << "operator: " << op << endl;
 }
 
-string normalizeNumber(const string s) {
-    string result;
+void printIdentificator(string id) {
+    cout << "id: " << id << endl;
+}
 
+void printSeparator(string separator) {
+    cout << "separator: " << separator << endl;
+}
+
+string stripUnderscores(string s) {
+    string result;
     result.reserve(s.size());
     for (char c : s) {
         if (c != '_') result += c;
     }
+    return result;
+}
+
+string stripSuffix(string s, string chars) {
+    if (s.empty()) return s;
+    char last = s[s.size() - 1];
+    for (char c : chars) {
+        if (c == last) return s.substr(0, s.size() - 1);
+    }
+    return s;
+}
+
+string normalizeInt(string s) {
+    string result = stripUnderscores(s);
+    result = stripSuffix(result, "lL");
 
     int i = 0;
-    while (i + 1 < result.size() && result[i] == '0') i++;
-
+    while (i + 1 < (int)result.size() && result[i] == '0') i++;
     return result.substr(i);
+}
+
+string normalizeBinInt(string s) {
+    string clean = stripUnderscores(s);
+
+    bool isLong = false;
+    if (!clean.empty()
+        && (clean[clean.size() - 1] == 'l' || clean[clean.size() - 1] == 'L')) {
+        clean = clean.substr(0, clean.size() - 1);
+        isLong = true;
+    }
+
+    int start = 0;
+    if (clean.size() >= 2
+        && clean[0] == '0'
+        && (clean[1] == 'b' || clean[1] == 'B')) {
+        start = 2;
+    }
+
+    unsigned long long v = 0;
+    for (int i = start; i < (int)clean.size(); i++) {
+        char c = clean[i];
+        if (c == '0' || c == '1') {
+            v = (v << 1) | (unsigned long long)(c - '0');
+        }
+    }
+
+    string result = to_string(v);
+    if (isLong) result += "L";
+    return result;
+}
+
+string normalizeHexInt(string s) {
+    string clean = stripUnderscores(s);
+
+    bool isLong = false;
+    if (!clean.empty()
+        && (clean[clean.size() - 1] == 'l' || clean[clean.size() - 1] == 'L')) {
+        clean = clean.substr(0, clean.size() - 1);
+        isLong = true;
+    }
+
+    int start = 0;
+    if (clean.size() >= 2
+        && clean[0] == '0'
+        && (clean[1] == 'x' || clean[1] == 'X')) {
+        start = 2;
+    }
+
+    unsigned long long v = 0;
+    for (int i = start; i < (int)clean.size(); i++) {
+        char c = clean[i];
+        int d = -1;
+        if (c >= '0' && c <= '9')      d = c - '0';
+        else if (c >= 'a' && c <= 'f') d = c - 'a' + 10;
+        else if (c >= 'A' && c <= 'F') d = c - 'A' + 10;
+        if (d >= 0) v = v * 16 + (unsigned long long)d;
+    }
+
+    string result = to_string(v);
+    if (isLong) result += "L";
+
+    return result;
+}
+
+string normalizeDouble(string s) {
+    string result = stripUnderscores(s);
+    result = stripSuffix(result, "fFdD");
+
+    bool hasDotOrExp = false;
+    for (char c : result) {
+        if (c == '.' || c == 'e' || c == 'E') {
+            hasDotOrExp = true;
+            break;
+        }
+    }
+
+    if (!hasDotOrExp) result += ".0";
+
+    return result;
 }
