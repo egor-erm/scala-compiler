@@ -4,11 +4,12 @@
    /* многострочный
       комментарий 
    */
+
    val X: Int = 0_2
    val Int = 0_123
-   val s = "hello world"
+   val s = "test \u0041 "
 
-   println("Hello, Scala! " + X + " " + Int)
+   println(s + X + " " + Int)
    _Hi()
 }
 
@@ -21,6 +22,7 @@ def _Hi(): Unit = {
    val b = 0x2A
    val c = 101_163
    val d = 21_10.63F
+   val e: Char = 'a'
 
-   println("Hi, Scala! " + a + " " + b + " " + c + " " + d + " ")
+   println("Hi, Scala! " + a + " " + b + " " + c + " " + d + " " + e)
 }

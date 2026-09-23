@@ -27,6 +27,9 @@
     string normalizeHexInt(string s);
     string normalizeDouble(string s);
 
+    string normalizeChar(string s);
+    string decodeChar(string s);
+
 %}
 
 LETTER [a-zA-Z_$]
@@ -58,6 +61,12 @@ VARID [a-z_]{IDREST}
 
 /*constructor identifier (класс, объект, тип) */
 CONID [A-Z]{IDREST}
+
+CHAR_ESCAPE \\[btnfr"'\\]
+CHAR_UNICODE \\u{HEX_DIGIT}{4}
+CHAR_OCT \\[0-7]{1,3}
+CHAR_CONTENT ([^'\\\n]|{CHAR_ESCAPE}|{CHAR_UNICODE}|{CHAR_OCT})
+CHAR_LITERAL '{CHAR_CONTENT}'
 
 %%
 
@@ -141,6 +150,8 @@ using       { printKeyword(YYText()); }
 {BIN_LITERAL}               { printLiteral("int", normalizeBinInt(YYText())); }
 {HEX_LITERAL}               { printLiteral("int", normalizeHexInt(YYText())); }
 
+{CHAR_LITERAL}              { printLiteral("char", normalizeChar(YYText())); }
+
 {VARID}     { printIdentificator(YYText()); }
 {CONID}     { printIdentificator(YYText()); }
 
@@ -179,16 +190,21 @@ using       { printKeyword(YYText()); }
 "^="    { printOperator(YYText()); }
 "|="    { printOperator(YYText()); }
 
-\"                   { stringBuffer = ""; BEGIN(STRING); }
-<STRING>[^\\"\n]+    { stringBuffer += YYText(); }
-<STRING>\\n          { stringBuffer += '\n'; }
-<STRING>\\\\         { stringBuffer += '\\'; }
-<STRING>\\\"         { stringBuffer += '"'; }
+\"                      { stringBuffer = ""; BEGIN(STRING); }
+<STRING>[^\\\"\n]+       { stringBuffer += YYText(); }
+<STRING>\\n             { stringBuffer += '\n'; }
+<STRING>\\\\            { stringBuffer += '\\'; }
+<STRING>\\\"            { stringBuffer += '"'; }
 
-<STRING>\\t          { stringBuffer += '\t'; }
-<STRING>\\r          { stringBuffer += '\r'; }
-<STRING>\\b          { stringBuffer += '\b'; }
-<STRING>\\f          { stringBuffer += '\f'; }
+<STRING>\\t             { stringBuffer += '\t'; }
+<STRING>\\r             { stringBuffer += '\r'; }
+<STRING>\\b             { stringBuffer += '\b'; }
+<STRING>\\f             { stringBuffer += '\f'; }
+
+<STRING>{CHAR_UNICODE} {stringBuffer += decodeChar(YYText());}
+<STRING>{CHAR_OCT} {stringBuffer += decodeChar(YYText());}
+
+<STRING>\\\n           {  }
 
 <STRING>\"           { printLiteral("string", stringBuffer);
                        BEGIN(INITIAL); }
@@ -253,6 +269,7 @@ string stripUnderscores(string s) {
 
 string stripSuffix(string s, string chars) {
     if (s.empty()) return s;
+
     char last = s[s.size() - 1];
     for (char c : chars) {
         if (c == last) return s.substr(0, s.size() - 1);
@@ -347,4 +364,54 @@ string normalizeDouble(string s) {
     if (!hasDotOrExp) result += ".0";
 
     return result;
+}
+
+string normalizeChar(string s) {
+    // отрезаем обрамляющие '
+    string inner = s.substr(1, s.size() - 2);
+
+    return decodeChar(inner);
+}
+
+string decodeChar(string inner) {
+    // одиночный символ — как есть
+    if (inner.size() == 1) return inner;
+
+    // \uXXXX -> попытаемся раскрыть, если печатаемый
+    if (inner.size() == 6 && inner[0] == '\\' && inner[1] == 'u') {
+        unsigned int code = 0;
+        for (int i = 2; i < 6; i++) {
+            char c = inner[i];
+            int d = -1;
+            if (c >= '0' && c <= '9')      d = c - '0';
+            else if (c >= 'a' && c <= 'f') d = c - 'a' + 10;
+            else if (c >= 'A' && c <= 'F') d = c - 'A' + 10;
+            if (d < 0) return inner;
+            code = code * 16 + d;
+        }
+        if (code >= 32 && code < 127 && code != '\'' && code != '\\') {
+            return string(1, (char)code);
+        }
+        return inner;
+    }
+
+    // \NNN — восьмеричный escape
+    if (inner.size() >= 2 && inner[0] == '\\'
+        && inner[1] >= '0' && inner[1] <= '7') {
+        unsigned int code = 0;
+        int digits = 0;
+        for (int i = 1; i < (int)inner.size() && digits < 3; i++) {
+            char c = inner[i];
+            if (c < '0' || c > '7') break;
+            code = code * 8 + (c - '0');
+            digits++;
+        }
+        if (code >= 32 && code < 127 && code != '\'' && code != '\\') {
+            return string(1, (char)code);
+        }
+        return inner;   // непечатаемый — оставляем \NNN
+    }
+
+    // остальные escape (\n, \t, \', \\ и т.п.) — как есть
+    return inner;
 }
