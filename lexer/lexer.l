@@ -11,8 +11,6 @@
     #include <cstdlib>
     using namespace std;
 
-    static string stringBuffer;
-
     void printLiteral(string type, string literal);
     void printType(string type);
     void printKeyword(string keyword);
@@ -34,7 +32,6 @@
 
 LETTER [a-zA-Z_$]
 DIGIT [0-9]
-NON_ZERO_DIGIT [1-9]
 BIN_DIGIT [01]
 HEX_DIGIT [0-9a-fA-F]
 
@@ -123,15 +120,15 @@ while       { printKeyword(YYText()); }
 with        { printKeyword(YYText()); }
 yield       { printKeyword(YYText()); }
 
-"?=>"       { printKeyword(YYText()); }
-"=>>"       { printKeyword(YYText()); }
-"=>"        { printKeyword(YYText()); }
-"<-"        { printKeyword(YYText()); }
-"<:"        { printKeyword(YYText()); }
-">:"        { printKeyword(YYText()); }
-":"         { printKeyword(YYText()); }
-"#"         { printKeyword(YYText()); }
-"@"         { printKeyword(YYText()); }
+"?=>"       { printOperator(YYText()); }
+"=>>"       { printOperator(YYText()); }
+"=>"        { printOperator(YYText()); }
+"<-"        { printOperator(YYText()); }
+"<:"        { printOperator(YYText()); }
+">:"        { printOperator(YYText()); }
+":"         { printOperator(YYText()); }
+"#"         { printOperator(YYText()); }
+"@"         { printOperator(YYText()); }
 
 as          { printKeyword(YYText()); } /* Soft keywords */
 derives     { printKeyword(YYText()); }
@@ -149,11 +146,6 @@ using       { printKeyword(YYText()); }
 {NUMBER}                    { printLiteral("int", normalizeInt(YYText())); }
 {BIN_LITERAL}               { printLiteral("int", normalizeBinInt(YYText())); }
 {HEX_LITERAL}               { printLiteral("int", normalizeHexInt(YYText())); }
-
-{CHAR_LITERAL}              { printLiteral("char", normalizeChar(YYText())); }
-
-{VARID}     { printIdentificator(YYText()); }
-{CONID}     { printIdentificator(YYText()); }
 
 "("         { printSeparator(YYText()); } /* Разделители */
 ")"         { printSeparator(YYText()); }
@@ -190,8 +182,10 @@ using       { printKeyword(YYText()); }
 "^="    { printOperator(YYText()); }
 "|="    { printOperator(YYText()); }
 
-\"                      { stringBuffer = ""; BEGIN(STRING); }
-<STRING>[^\\\"\n]+       { stringBuffer += YYText(); }
+{CHAR_LITERAL}              { printLiteral("char", normalizeChar(YYText())); }
+
+\"                      { string stringBuffer = ""; BEGIN(STRING); }
+<STRING>[^\\\"\n]+      { stringBuffer += YYText(); }
 <STRING>\\n             { stringBuffer += '\n'; }
 <STRING>\\\\            { stringBuffer += '\\'; }
 <STRING>\\\"            { stringBuffer += '"'; }
@@ -211,6 +205,10 @@ using       { printKeyword(YYText()); }
 
 <STRING>\n           { cerr << "ERROR: EOL in string" << endl;
                        BEGIN(INITIAL); }
+
+{VARID}     { printIdentificator(YYText()); }
+{CONID}     { printIdentificator(YYText()); }
+{OP}        { printIdentificator(YYText()); }
 
 <*>.     { cerr << "Unexpected char \'" << YYText()[0] << "\'" << endl; BEGIN(INITIAL);}
 
