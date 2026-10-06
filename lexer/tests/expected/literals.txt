@@ -1,0 +1,15 @@
+char literal: a
+separator: NEW LINE
+char literal: \n
+separator: NEW LINE
+char literal: \t
+separator: NEW LINE
+char literal: A
+separator: NEW LINE
+char literal: A
+separator: NEW LINE
+string literal: Hello
+separator: NEW LINE
+string literal: Unicode B
+separator: NEW LINE
+string literal: Octal A

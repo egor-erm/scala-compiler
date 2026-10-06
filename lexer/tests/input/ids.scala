@@ -1,0 +1,13 @@
+myVariable
+_private
+a1b2c3
+camelCase
+snake_case
+_underscore_
+MyClass
+HTMLParser
+X1Y2
+myVar_+
+x_=
+Y_=+!
++++

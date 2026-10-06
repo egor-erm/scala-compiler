@@ -1,0 +1,51 @@
+operator: +
+operator: -
+operator: *
+operator: /
+operator: %
+separator: NEW LINE
+operator: ==
+operator: !=
+operator: >
+operator: <
+operator: >=
+operator: <=
+operator: &&
+operator: ||
+operator: !
+separator: NEW LINE
+operator: &
+operator: ^
+operator: |
+operator: ~
+operator: >>
+operator: <<
+separator: NEW LINE
+operator: =
+operator: +=
+operator: -=
+operator: *=
+operator: /=
+operator: %=
+operator: <<=
+operator: >>=
+operator: &=
+operator: ^=
+operator: |=
+separator: NEW LINE
+operator: =>
+operator: <-
+operator: <:
+operator: >:
+operator: :
+operator: #
+operator: @
+separator: NEW LINE
+separator: (
+separator: )
+separator: [
+separator: ]
+separator: {
+separator: }
+separator: ,
+separator: .

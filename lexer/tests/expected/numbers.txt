@@ -1,0 +1,13 @@
+int literal: 1234567
+int literal: 1234567
+int literal: 31
+int literal: 10
+separator: NEW LINE
+double literal: 1.5
+double literal: 1.5e3
+double literal: 1.5
+double literal: 1.5
+double literal: 0.5
+double literal: 1e5
+double literal: 1e5
+double literal: 1234.56e4

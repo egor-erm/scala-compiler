@@ -3,6 +3,7 @@
 %option never-interactive
 
 %x STRING
+%x ML_COMMENT
 
 %{
     #include <iostream>
@@ -44,8 +45,7 @@ BIN_LITERAL 0(b|B)(_*{BIN_DIGIT})*
 
 FLOATING_POINT_LITERAL {NUMBER}?"\."{DIGIT}(_*{DIGIT})*{EXP}?{FLOAT_TYPE}?|{NUMBER}{EXP}{FLOAT_TYPE}?|{NUMBER}{FLOAT_TYPE}
 
-WHITESPACE [ \t\r\n]
-COMMENT "//"[^\n]*|"/*"([^*]|\*+[^*/])*\*+"/"
+WHITESPACE [ \t\r]
 
 OPCHAR [!#%&*+\-/:<=>?@\\^|~]
 OP {OPCHAR}+ 
@@ -67,9 +67,21 @@ CHAR_LITERAL '{CHAR_CONTENT}'
 
 %%
 
+%{
+    string stringBuffer = "";
+    int mlCommentDepth = 0;
+%}
+
 {WHITESPACE}+        { /* пропуск пробелов */ }
 
-{COMMENT}            { /* пропуск комментариев */ }
+"//"[^\n]*           { /* пропуск однострочных комментариев */ }
+
+"/*"                 { mlCommentDepth = 1; BEGIN(ML_COMMENT); }
+<ML_COMMENT>"/*"     { mlCommentDepth++; }
+<ML_COMMENT>"*/"     { if (--mlCommentDepth == 0) BEGIN(INITIAL); }
+<ML_COMMENT>\n|.     { /* пропускаем перевод строки и символы внутри комментария */ }
+<ML_COMMENT><<EOF>>  { cerr << "ERROR: unterminated multi-line comment" << endl;
+                       BEGIN(INITIAL); }
 
 Int     { printType(YYText()); }
 Double  { printType(YYText()); }
@@ -85,18 +97,16 @@ class       { printKeyword(YYText()); }
 def         { printKeyword(YYText()); }
 do          { printKeyword(YYText()); }
 else        { printKeyword(YYText()); }
-enum        { printKeyword(YYText()); }
-export      { printKeyword(YYText()); }
 extends     { printKeyword(YYText()); }
 false       { printKeyword(YYText()); }
 final       { printKeyword(YYText()); }
 finally     { printKeyword(YYText()); }
 for         { printKeyword(YYText()); }
-given       { printKeyword(YYText()); }
 if          { printKeyword(YYText()); }
 implicit    { printKeyword(YYText()); }
 import      { printKeyword(YYText()); }
 lazy        { printKeyword(YYText()); }
+macro        { printKeyword(YYText()); }
 match       { printKeyword(YYText()); }
 new         { printKeyword(YYText()); }
 null        { printKeyword(YYText()); }
@@ -108,7 +118,7 @@ protected   { printKeyword(YYText()); }
 return      { printKeyword(YYText()); }
 sealed      { printKeyword(YYText()); }
 super       { printKeyword(YYText()); }
-then        { printKeyword(YYText()); }
+this        { printKeyword(YYText()); }
 throw       { printKeyword(YYText()); }
 trait       { printKeyword(YYText()); }
 true        { printKeyword(YYText()); }
@@ -120,8 +130,6 @@ while       { printKeyword(YYText()); }
 with        { printKeyword(YYText()); }
 yield       { printKeyword(YYText()); }
 
-"?=>"       { printOperator(YYText()); }
-"=>>"       { printOperator(YYText()); }
 "=>"        { printOperator(YYText()); }
 "<-"        { printOperator(YYText()); }
 "<:"        { printOperator(YYText()); }
@@ -154,7 +162,6 @@ using       { printKeyword(YYText()); }
 "{"         { printSeparator(YYText()); }
 "}"         { printSeparator(YYText()); }
 ","         { printSeparator(YYText()); }
-";"         { printSeparator(YYText()); }
 "."         { printSeparator(YYText()); }
 
 "+"     { printOperator(YYText()); } /* Операторы */
@@ -170,6 +177,17 @@ using       { printKeyword(YYText()); }
 ">="    { printOperator(YYText()); }
 "<="    { printOperator(YYText()); }
 
+"&&"    { printOperator(YYText()); }
+"||"    { printOperator(YYText()); }
+"!"    { printOperator(YYText()); }
+
+"&"    { printOperator(YYText()); }
+"^"    { printOperator(YYText()); }
+"|"    { printOperator(YYText()); }
+"~"    { printOperator(YYText()); }
+">>"    { printOperator(YYText()); }
+"<<"    { printOperator(YYText()); }
+
 "="     { printOperator(YYText()); }
 "+="    { printOperator(YYText()); }
 "-="    { printOperator(YYText()); }
@@ -184,7 +202,7 @@ using       { printKeyword(YYText()); }
 
 {CHAR_LITERAL}              { printLiteral("char", normalizeChar(YYText())); }
 
-\"                      { string stringBuffer = ""; BEGIN(STRING); }
+\"                      { stringBuffer = ""; BEGIN(STRING); }
 <STRING>[^\\\"\n]+      { stringBuffer += YYText(); }
 <STRING>\\n             { stringBuffer += '\n'; }
 <STRING>\\\\            { stringBuffer += '\\'; }
@@ -209,6 +227,9 @@ using       { printKeyword(YYText()); }
 {VARID}     { printIdentificator(YYText()); }
 {CONID}     { printIdentificator(YYText()); }
 {OP}        { printIdentificator(YYText()); }
+
+";"         { printSeparator(YYText()); }
+\n          { printSeparator("NEW LINE"); }
 
 <*>.     { cerr << "Unexpected char \'" << YYText()[0] << "\'" << endl; BEGIN(INITIAL);}
 
@@ -350,6 +371,10 @@ string normalizeHexInt(string s) {
 string normalizeDouble(string s) {
     string result = stripUnderscores(s);
     result = stripSuffix(result, "fFdD");
+
+    if (!result.empty() && result[0] == '.') {
+        return "0" + result;
+    }
 
     bool hasDotOrExp = false;
     for (char c : result) {

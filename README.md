@@ -1,7 +1,7 @@
 # scala-compiler
 
 Синтаксис SCALA: 
-https://scala-lang.org/files/archive/spec/3.4/01-lexical-syntax.html
+https://scala-lang.org/files/archive/spec/2.13/01-lexical-syntax.html
 
 Использование flex:
 .\win_flex.exe --o lexer.cc lexer.l

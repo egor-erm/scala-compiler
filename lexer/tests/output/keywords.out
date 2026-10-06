@@ -1,0 +1,109 @@
+keyword: abstract
+separator: NEW LINE
+keyword: case
+separator: NEW LINE
+keyword: catch
+separator: NEW LINE
+keyword: class
+separator: NEW LINE
+keyword: def
+separator: NEW LINE
+keyword: do
+separator: NEW LINE
+keyword: else
+separator: NEW LINE
+keyword: extends
+separator: NEW LINE
+keyword: false
+separator: NEW LINE
+keyword: final
+separator: NEW LINE
+keyword: finally
+separator: NEW LINE
+keyword: for
+separator: NEW LINE
+id: forSome
+separator: NEW LINE
+keyword: if
+separator: NEW LINE
+keyword: implicit
+separator: NEW LINE
+keyword: import
+separator: NEW LINE
+keyword: lazy
+separator: NEW LINE
+keyword: match
+separator: NEW LINE
+keyword: new
+separator: NEW LINE
+keyword: null
+separator: NEW LINE
+keyword: object
+separator: NEW LINE
+keyword: override
+separator: NEW LINE
+keyword: package
+separator: NEW LINE
+keyword: private
+separator: NEW LINE
+keyword: protected
+separator: NEW LINE
+keyword: return
+separator: NEW LINE
+keyword: sealed
+separator: NEW LINE
+keyword: super
+separator: NEW LINE
+keyword: this
+separator: NEW LINE
+keyword: throw
+separator: NEW LINE
+keyword: trait
+separator: NEW LINE
+keyword: true
+separator: NEW LINE
+keyword: try
+separator: NEW LINE
+keyword: type
+separator: NEW LINE
+keyword: val
+separator: NEW LINE
+keyword: var
+separator: NEW LINE
+keyword: while
+separator: NEW LINE
+keyword: with
+separator: NEW LINE
+keyword: yield
+separator: NEW LINE
+keyword: as
+separator: NEW LINE
+keyword: derives
+separator: NEW LINE
+keyword: end
+separator: NEW LINE
+keyword: extension
+separator: NEW LINE
+keyword: infix
+separator: NEW LINE
+keyword: inline
+separator: NEW LINE
+keyword: opaque
+separator: NEW LINE
+keyword: open
+separator: NEW LINE
+keyword: transparent
+separator: NEW LINE
+keyword: using
+separator: NEW LINE
+type: Int
+separator: NEW LINE
+type: Double
+separator: NEW LINE
+type: String
+separator: NEW LINE
+type: Char
+separator: NEW LINE
+type: Array
+separator: NEW LINE
+type: Unit

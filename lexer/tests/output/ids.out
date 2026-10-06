@@ -1,0 +1,25 @@
+id: myVariable
+separator: NEW LINE
+id: _private
+separator: NEW LINE
+id: a1b2c3
+separator: NEW LINE
+id: camelCase
+separator: NEW LINE
+id: snake_case
+separator: NEW LINE
+id: _underscore_
+separator: NEW LINE
+id: MyClass
+separator: NEW LINE
+id: HTMLParser
+separator: NEW LINE
+id: X1Y2
+separator: NEW LINE
+id: myVar_+
+separator: NEW LINE
+id: x_=
+separator: NEW LINE
+id: Y_=+!
+separator: NEW LINE
+id: +++
