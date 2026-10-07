@@ -1,0 +1,609 @@
+/* ============================================================
+   Токены
+   ============================================================ */
+
+%token UNDERSCORE          /* _ — wildcard/placeholder */
+%token SEPARATOR           /* ; или иной разделитель инструкций */
+%token VAL VAR             /* def-объявления */
+%token ID                  /* имя */
+%token TINT TCHAR TSTR     /* встроенные типы */
+%token TARRAY TLIST TDOUBLE TFLOAT TBOOL /* типы-контейнеры и числа */
+%token LITINT LITCHAR LITSTR /* литералы */
+%token COLON               /* : */
+%token ASSIGN PLUS_ASSIGN MINUS_ASSIGN STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN /* присваивания */
+%token PLUS MINUS STAR SLASH PERCENT EXCL TILDA /* операторы */
+%token EQ NEQ LESS_EQ GREATER_EQ LESS_NEQ GREATER_NEQ /* сравнения */
+%token LPAR RPAR SQ_LPAR SQ_RPAR CURV_LPAR CURV_RPAR /* скобки */
+%token NEW DOT FROM FILL TABULATE RANGE COMMA ITERATE RARROW CONCAT TO TOTARRAY TOARRAY EMPTY
+%token LIST NIL CONS VECTOR SEQ SET MAP ARRAY APPLY UPDATE HEAD LAST
+%token IF ELSE MATCH CASE AT_SIGN SOME NONE OR
+%token WHILE DO FOR BY UNTIL YIELD
+%token DEF PRINT PRINTLN PRINTF CONSOLE ERR READINT READCHAR READLINE
+%token CLASS FINAL ABSTRACT SEALED TRAIT EXTENDS WITH PRIVATE PROTECTED PACKAGE THIS OVERRIDE SUPER
+%token AND BYTE_AND BYTE_OR BYTE_XOR
+%token OBJECT ENUMERATION TYPE VALUE IMPORT
+%token TRY CATCH FINALLY E EXCEPTION THROW SUCCESS V FAILURE NONFATAL
+%token EITHER OPTION
+%token LARROW TOLIST
+%token OR_ASSIGN XOR_ASSIGN AND_ASSIGN SUBTYPE SUPERTYPE CONTEXT_FUNC HASH QMARK BACKSLASH
+%token UMINUS UPLUS UEXCL UTILDA
+
+/* ============================================================
+   Приоритеты и ассоциативность
+   ============================================================ */
+
+%right ASSIGN
+%left OR_ASSIGN OR
+%left XOR_ASSIGN XOR
+%left AND_ASSIGN AND
+%nonassoc EQ NEQ
+%left LESS_NEQ GREATER_NEQ LESS_EQ GREATER_EQ
+%right SUBTYPE SUPERTYPE
+%right COLON
+%left PLUS MINUS PLUS_ASSIGN MINUS_ASSIGN
+%left STAR SLASH PERCENT STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN
+%left CONTEXT_FUNC HASH AT_SIGN QMARK BACKSLASH
+%right UMINUS UPLUS UEXCL UTILDA
+
+%start program
+
+%%
+
+/* ============================================================
+   База
+   ============================================================ */
+
+program:
+    /* empty */
+  | program stmt
+;
+
+stmt:
+    def SEPARATOR
+  | expr SEPARATOR
+  | output SEPARATOR
+  | input SEPARATOR
+;
+
+/* ============================================================
+   Определения
+   ============================================================ */
+
+def:
+    var_def
+  | func_def
+  | class_def
+  | trait_def
+  | aux_constructor_def
+  | final_func_def
+  | enum_def
+;
+
+/* --- переменные, массивы, списки --- */
+
+var_def:
+    VAL ID ASSIGN expr
+  | VAR ID ASSIGN expr
+  | VAL ID COLON type ASSIGN expr
+  | VAR ID COLON type ASSIGN expr
+
+  | VAL ID ASSIGN NEW type LPAR expr RPAR
+  | VAL ID COLON type ASSIGN NEW TARRAY LPAR expr RPAR
+
+  | VAL ID ASSIGN TARRAY LPAR expr_list RPAR
+  | VAL ID COLON type ASSIGN TARRAY LPAR expr_list RPAR
+  | VAL ID ASSIGN TARRAY DOT FROM LPAR expr RPAR
+  | VAL ID COLON type ASSIGN TARRAY DOT FROM LPAR expr RPAR
+  | VAL ID ASSIGN TARRAY DOT FILL LPAR expr RPAR LPAR expr RPAR
+  | VAL ID COLON type ASSIGN TARRAY DOT FILL LPAR expr RPAR LPAR expr RPAR
+  | VAL ID ASSIGN TARRAY DOT TABULATE LPAR expr RPAR LPAR self_func RPAR
+  | VAL ID COLON type ASSIGN TARRAY DOT TABULATE LPAR expr RPAR LPAR self_func RPAR
+
+  | VAL ID ASSIGN TARRAY DOT RANGE LPAR expr COMMA expr RPAR
+  | VAL ID ASSIGN TARRAY DOT RANGE LPAR expr COMMA expr COMMA expr RPAR
+  | VAL ID COLON type ASSIGN TARRAY DOT RANGE LPAR expr COMMA expr RPAR
+  | VAL ID COLON type ASSIGN TARRAY DOT RANGE LPAR expr COMMA expr COMMA expr RPAR
+
+  | VAL ID ASSIGN TARRAY DOT ITERATE LPAR expr COMMA expr RPAR LPAR self_expr RPAR
+  | VAL ID ASSIGN TARRAY DOT ITERATE LPAR expr COMMA expr RPAR LPAR self_func RPAR
+  | VAL ID ASSIGN TARRAY DOT ITERATE LPAR expr COMMA expr RPAR LPAR UNDERSCORE RARROW expr RPAR
+  | VAL ID COLON type ASSIGN TARRAY DOT ITERATE LPAR expr COMMA expr RPAR LPAR self_expr RPAR
+  | VAL ID COLON type ASSIGN TARRAY DOT ITERATE LPAR expr COMMA expr RPAR LPAR self_func RPAR
+  | VAL ID COLON type ASSIGN TARRAY DOT ITERATE LPAR expr COMMA expr RPAR LPAR UNDERSCORE RARROW expr RPAR
+
+  | VAL ID ASSIGN TARRAY DOT CONCAT LPAR expr_list_e RPAR
+  | VAL ID COLON type ASSIGN TARRAY DOT CONCAT LPAR expr_list_e RPAR
+
+  | VAL ID ASSIGN LPAR expr TO expr RPAR DOT TOTARRAY
+  | VAL ID COLON type ASSIGN LPAR expr TO expr RPAR DOT TOARRAY
+
+  | VAL ID ASSIGN TARRAY LPAR RPAR
+  | VAL ID ASSIGN TARRAY DOT EMPTY SQ_LPAR type SQ_RPAR
+  | VAL ID COLON type ASSIGN TARRAY LPAR RPAR
+  | VAL ID COLON type ASSIGN TARRAY DOT EMPTY
+
+  | VAL ID ASSIGN TLIST LPAR expr_list_e RPAR
+  | VAL ID ASSIGN TLIST SQ_LPAR type SQ_RPAR LPAR RPAR
+  | VAL ID ASSIGN TLIST DOT EMPTY SQ_LPAR type SQ_RPAR
+  | VAL ID COLON SQ_LPAR type SQ_RPAR ASSIGN TLIST LPAR expr_list_e RPAR
+  | VAL ID COLON SQ_LPAR type SQ_RPAR ASSIGN TLIST DOT EMPTY
+
+  | VAL ID ASSIGN construct
+  | VAL ID COLON SQ_LPAR type SQ_RPAR ASSIGN construct
+
+  | VAL ID ASSIGN TLIST DOT RANGE LPAR expr COMMA expr RPAR
+  | VAL ID ASSIGN TLIST DOT RANGE LPAR expr COMMA expr COMMA expr RPAR
+  | VAL ID COLON SQ_LPAR type SQ_RPAR ASSIGN TLIST DOT RANGE LPAR expr COMMA expr RPAR
+  | VAL ID COLON SQ_LPAR type SQ_RPAR ASSIGN TLIST DOT RANGE LPAR expr COMMA expr COMMA expr RPAR
+
+  | VAL ID ASSIGN TLIST DOT FILL LPAR expr RPAR LPAR expr RPAR
+  | VAL ID COLON SQ_LPAR type SQ_RPAR ASSIGN TLIST DOT FILL LPAR expr RPAR LPAR expr RPAR
+
+  | VAL ID ASSIGN TLIST DOT TABULATE LPAR expr RPAR LPAR ID RARROW expr RPAR
+
+  | VAL ID ASSIGN expr DOT TOLIST
+  | VAL ID COLON SQ_LPAR type SQ_RPAR ASSIGN expr DOT TOLIST
+
+  | VAL ID ASSIGN TLIST DOT CONCAT LPAR expr_list_e RPAR
+  | VAL ID COLON SQ_LPAR type SQ_RPAR ASSIGN TLIST DOT CONCAT LPAR expr_list_e RPAR
+
+  | VAL ID ASSIGN TLIST DOT ITERATE LPAR expr COMMA expr RPAR LPAR self_func RPAR
+;
+
+/* --- типы --- */
+
+type:
+    TINT
+  | TCHAR
+  | TSTR
+  | TARRAY
+  | TARRAY SQ_LPAR type SQ_RPAR
+  | TDOUBLE
+  | TFLOAT
+  | TBOOL
+  | ID
+  | ID WITH trait_list
+  | EITHER SQ_LPAR type COMMA type SQ_RPAR
+  | OPTION SQ_LPAR type SQ_RPAR
+;
+
+/* --- функции --- */
+
+func_def:
+    DEF ID LPAR param_list_e RPAR COLON type ASSIGN expr
+  | DEF ID LPAR param_list_e RPAR ASSIGN expr
+  | DEF ID COLON type ASSIGN expr
+  | DEF ID ASSIGN expr
+  | VAL ID COLON type RARROW type ASSIGN ID RARROW expr
+  | VAL ID COLON LPAR type_list_e RPAR RARROW type ASSIGN LPAR id_list_e RPAR RARROW expr
+  | VAL ID ASSIGN LPAR param_list_e RPAR RARROW expr
+  | VAL ID COLON type RARROW type ASSIGN expr
+  | VAL ID COLON LPAR type_list_e RPAR RARROW type ASSIGN expr
+  | VAL ID COLON type RARROW type ASSIGN CURV_LPAR ID RARROW stmt_list expr CURV_RPAR
+  | VAL ID COLON LPAR type_list_e RPAR RARROW type ASSIGN CURV_LPAR ID RARROW stmt_list expr CURV_RPAR
+  | DEF ID param_list_e_seq COLON type ASSIGN expr
+  | DEF ID param_list_e_seq ASSIGN expr
+;
+
+final_func_def:
+    FINAL func_def
+;
+
+param_list_e_seq:
+    LPAR param_list_e RPAR
+  | param_list_e_seq LPAR param_list_e RPAR
+;
+
+id_list_e:
+    /* empty */
+  | id_list
+;
+
+id_list:
+    ID
+  | id_list COMMA ID
+;
+
+type_list_e:
+    /* empty */
+  | type_list
+;
+
+type_list:
+    type
+  | type_list COMMA type
+;
+
+param_list_e:
+    /* empty */
+  | param_list
+;
+
+param_list:
+    param
+  | param_list COMMA param
+;
+
+param:
+    ID COLON type
+  | ID COLON type ASSIGN expr
+  | ID COLON type STAR
+  | ID COLON type RARROW type
+  | ID COLON LPAR type_list_e RPAR RARROW type
+;
+
+/* --- классы, трейты, конструкторы --- */
+
+class_id:
+    CLASS ID
+  | FINAL CLASS ID
+  | ABSTRACT CLASS ID
+  | SEALED CLASS ID
+  | SEALED ABSTRACT CLASS ID
+;
+
+trait_list:
+    ID
+  | trait_list WITH ID
+;
+
+class_def:
+    class_id
+  | class_id CURV_LPAR prop_def_list_e CURV_RPAR
+  | class_id LPAR class_field_list_e RPAR
+  | class_id LPAR class_field_list_e RPAR CURV_LPAR prop_def_list_e CURV_RPAR
+  | class_id EXTENDS ID
+  | class_id EXTENDS ID CURV_LPAR prop_def_list_e CURV_RPAR
+  | class_id EXTENDS ID LPAR expr_list_e RPAR
+  | class_id EXTENDS ID LPAR expr_list_e RPAR CURV_LPAR prop_def_list_e CURV_RPAR
+  | class_id LPAR class_field_list_e RPAR EXTENDS ID LPAR id_list_e RPAR
+  | class_id LPAR class_field_list_e RPAR EXTENDS ID LPAR id_list_e RPAR CURV_LPAR prop_def_list_e CURV_RPAR
+  | class_id EXTENDS trait_list
+  | class_id EXTENDS trait_list CURV_LPAR prop_def_list_e CURV_RPAR
+  | class_id LPAR class_field_list_e RPAR EXTENDS trait_list
+  | class_id LPAR class_field_list_e RPAR EXTENDS trait_list CURV_LPAR prop_def_list_e CURV_RPAR
+  | class_id EXTENDS ID WITH trait_list
+  | class_id EXTENDS ID WITH trait_list CURV_LPAR prop_def_list_e CURV_RPAR
+  | class_id EXTENDS ID LPAR id_list_e RPAR WITH trait_list
+  | class_id EXTENDS ID LPAR id_list_e RPAR WITH trait_list CURV_LPAR prop_def_list_e CURV_RPAR
+  | class_id LPAR class_field_list_e RPAR EXTENDS ID LPAR id_list_e RPAR WITH trait_list
+  | class_id LPAR class_field_list_e RPAR EXTENDS ID LPAR id_list_e RPAR WITH trait_list CURV_LPAR prop_def_list_e CURV_RPAR
+;
+
+trait_def:
+    TRAIT ID
+  | TRAIT ID CURV_LPAR prop_def_list_e CURV_RPAR
+  | TRAIT ID EXTENDS ID CURV_LPAR prop_def_list_e CURV_RPAR
+  | SEALED TRAIT ID
+  | SEALED TRAIT ID CURV_LPAR prop_def_list_e CURV_RPAR
+  | SEALED TRAIT ID EXTENDS ID CURV_LPAR prop_def_list_e CURV_RPAR
+;
+
+aux_constructor_def:
+    DEF THIS LPAR param_list_e RPAR ASSIGN THIS LPAR expr_list_e RPAR
+;
+
+class_field_list_e:
+    /* empty */
+  | class_field_list
+;
+
+class_field_list:
+    class_field
+  | class_field_list COMMA class_field
+;
+
+class_field:
+    ID COLON type
+  | VAL ID COLON type
+;
+
+prop_def_list_e:
+    /* empty */
+  | prop_def_list
+;
+
+prop_def_list:
+    prop_def
+  | prop_def_list SEPARATOR prop_def
+;
+
+prop_def:
+    def
+  | PRIVATE def
+  | PROTECTED def
+  | PROTECTED SQ_LPAR PACKAGE SQ_RPAR def
+  | PRIVATE SQ_LPAR THIS SQ_RPAR def
+  | PRIVATE SQ_LPAR PACKAGE SQ_RPAR def
+  | OVERRIDE def
+  | ABSTRACT PRIVATE def
+  | ABSTRACT PROTECTED def
+  | ABSTRACT PROTECTED SQ_LPAR PACKAGE SQ_RPAR def
+  | ABSTRACT PRIVATE SQ_LPAR THIS SQ_RPAR def
+  | ABSTRACT PRIVATE SQ_LPAR PACKAGE SQ_RPAR def
+  | ABSTRACT OVERRIDE def
+  | THIS COLON ID RARROW def
+;
+
+/* --- перечисления --- */
+
+enum_def:
+    enum_delf
+;
+
+enum_delf:
+    OBJECT ID EXTENDS ENUMERATION CURV_LPAR expr_list_e CURV_RPAR
+;
+
+/* ============================================================
+   Выражения
+   ============================================================ */
+
+expr:
+    LITINT
+  | LITCHAR
+  | LITSTR
+  | ID
+  | LPAR expr_list_e RPAR
+
+  | PLUS expr %prec UPLUS
+  | MINUS expr %prec UMINUS
+  | EXCL expr %prec UEXCL
+  | TILDA expr %prec UTILDA
+
+  | expr PLUS expr
+  | expr MINUS expr
+  | expr STAR expr
+  | expr SLASH expr
+  | expr PERCENT expr
+
+  | expr EQ expr
+  | expr NEQ expr
+  | expr LESS_EQ expr
+  | expr GREATER_EQ expr
+  | expr LESS_NEQ expr
+  | expr GREATER_NEQ expr
+
+  | expr ASSIGN expr
+  | expr PLUS_ASSIGN expr
+  | expr MINUS_ASSIGN expr
+  | expr STAR_ASSIGN expr
+  | expr SLASH_ASSIGN expr
+  | expr PERCENT_ASSIGN expr
+
+  | expr TO expr
+  | iterable_once LPAR expr_list_e RPAR
+  | expr LPAR expr_list_e RPAR
+
+  | expr DOT APPLY LPAR expr RPAR
+  | expr DOT UPDATE LPAR expr COMMA expr RPAR
+  | expr DOT HEAD
+  | expr DOT LAST
+  | expr DOT expr
+  | SUPER DOT expr
+  | expr ASSIGN NEW ID
+
+  | expr AND expr
+  | expr OR expr
+  | expr BYTE_AND expr
+  | expr BYTE_OR expr
+  | expr BYTE_XOR expr
+
+  | block_expr
+  | if_expr
+  | match_expr
+  | SOME LPAR expr RPAR
+  | NONE
+
+  | while_expr
+  | do_while_expr
+  | for_expr
+  | YIELD LPAR expr_list_e RPAR
+
+  | TYPE ID ASSIGN VALUE
+  | ID DOT VALUE
+  | IMPORT ID DOT UNDERSCORE
+  | VAL id_list
+  | VAR id_list
+  | expr ASSIGN VALUE
+
+  | try_catch_expr
+  | THROW NEW EXCEPTION LPAR RPAR
+  | THROW NEW EXCEPTION LPAR expr RPAR
+;
+
+iterable_once:
+    LIST
+  | VECTOR
+  | SEQ
+  | SET
+  | MAP
+  | RANGE
+  | ARRAY
+;
+
+construct:
+    expr
+  | LIST LPAR expr_list RPAR
+  | NIL
+  | expr CONS construct
+  | CONS LPAR expr COMMA construct RPAR
+  | NEW CONS LPAR expr COMMA construct RPAR
+;
+
+self_expr:
+    UNDERSCORE
+  | LPAR self_expr RPAR
+  | self_expr PLUS expr
+  | self_expr MINUS expr
+  | self_expr STAR expr
+  | self_expr SLASH expr
+  | self_expr PERCENT expr
+  | expr PLUS self_expr
+  | expr MINUS self_expr
+  | expr STAR self_expr
+  | expr SLASH self_expr
+  | expr PERCENT self_expr
+  | PLUS self_expr %prec UPLUS
+  | MINUS self_expr %prec UMINUS
+  | EXCL self_expr %prec UEXCL
+  | TILDA self_expr %prec UTILDA
+;
+
+self_func:
+    ID
+  | ID RARROW expr
+;
+
+expr_list:
+    expr
+  | expr_list COMMA expr
+;
+
+expr_list_e:
+    /* empty */
+  | expr_list
+;
+
+/* ============================================================
+   Развилки
+   ============================================================ */
+
+if_expr:
+    IF LPAR expr RPAR expr
+  | IF LPAR expr RPAR expr ELSE expr
+;
+
+match_expr:
+    expr MATCH CURV_LPAR case_list CURV_RPAR
+  | expr MATCH CURV_LPAR except_case_list CURV_RPAR
+;
+
+case_list:
+    CASE UNDERSCORE RARROW expr
+  | case case_list
+;
+
+case:
+    CASE expr RARROW expr
+  | CASE expr IF expr RARROW expr
+  | CASE ID COLON type RARROW expr
+  | CASE ID COLON type IF expr RARROW expr
+  | CASE ID AT_SIGN expr RARROW expr
+  | CASE ID AT_SIGN expr IF expr RARROW expr
+  | CASE ID COLON type AT_SIGN expr RARROW expr
+  | CASE ID COLON type AT_SIGN expr IF expr RARROW expr
+;
+
+block_expr:
+    CURV_LPAR CURV_RPAR
+  | CURV_LPAR expr CURV_RPAR
+  | CURV_LPAR stmt_list expr CURV_RPAR
+;
+
+stmt_list:
+    stmt
+  | stmt_list stmt
+;
+
+/* ============================================================
+   Циклы
+   ============================================================ */
+
+while_expr:
+    WHILE LPAR expr RPAR expr
+;
+
+do_while_expr:
+    DO expr WHILE LPAR expr RPAR
+;
+
+for_expr:
+    FOR LPAR generator RPAR expr
+  | FOR LPAR generator guard RPAR expr
+  | FOR CURV_LPAR generator_list CURV_RPAR expr
+  | FOR LPAR ID LARROW expr TO expr BY expr RPAR expr
+;
+
+generator_list:
+    generator
+  | generator_list generator
+  | generator_list guard
+  | generator_list expr
+;
+
+generator:
+    ID LARROW expr
+  | ID LARROW expr TO expr
+  | ID LARROW expr UNTIL expr
+;
+
+guard:
+    IF expr
+;
+
+/* ============================================================
+   Консоль
+   ============================================================ */
+
+output:
+    PRINT LPAR expr RPAR
+  | PRINTLN LPAR expr RPAR
+  | PRINTF LPAR LITSTR COMMA args_e RPAR
+  | CONSOLE DOT ERR DOT PRINTLN LPAR expr RPAR
+;
+
+input:
+    READINT LPAR RPAR
+  | READCHAR LPAR RPAR
+  | READLINE LPAR RPAR
+;
+
+args_e:
+    /* empty */
+  | args
+;
+
+args:
+    arg
+  | args COMMA arg
+;
+
+arg:
+    expr
+;
+
+/* ============================================================
+   Исключения
+   ============================================================ */
+
+try_catch_expr:
+    TRY expr CATCH CURV_LPAR err_case_list CURV_RPAR FINALLY expr
+  | TRY expr CATCH CURV_LPAR err_case_list wildcard_err_case CURV_RPAR FINALLY expr
+;
+
+err_case_list:
+    err_case
+  | err_case_list err_case
+;
+
+err_case:
+    CASE E COLON EXCEPTION RARROW PRINTLN LPAR expr RPAR
+;
+
+wildcard_err_case:
+    CASE UNDERSCORE COLON EXCEPTION RARROW PRINTLN LPAR expr RPAR
+;
+
+except_case_list:
+    except_case
+  | except_case_list SEPARATOR except_case
+;
+
+except_case:
+    CASE SUCCESS LPAR V RPAR RARROW expr
+  | CASE FAILURE LPAR E RPAR RARROW expr
+  | CASE NONFATAL LPAR E RPAR RARROW expr
+;
+
+%%
