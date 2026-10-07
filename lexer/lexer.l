@@ -106,7 +106,7 @@ if          { printKeyword(YYText()); }
 implicit    { printKeyword(YYText()); }
 import      { printKeyword(YYText()); }
 lazy        { printKeyword(YYText()); }
-macro        { printKeyword(YYText()); }
+macro       { printKeyword(YYText()); }
 match       { printKeyword(YYText()); }
 new         { printKeyword(YYText()); }
 null        { printKeyword(YYText()); }
