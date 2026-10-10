@@ -6,7 +6,11 @@
 
 %token VAL VAR
 %token ID
-%token TINT TCHAR TSTR LITINT LITCHAR LITSTR
+%token TINT TCHAR TSTR
+%token NEW TARRAY TLIST
+%token EMPTY APPLY FILL TABULATE RANGE ITERATE CONCAT COPY COPY_OF FROM HEAD LAST LIFT APPLY_OR_ELSE UPDATE
+%token R_ARROW
+%token LITINT LITCHAR LITSTR
 %token PLUS_ASSIGN MINUS_ASSIGN STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN
 
 %right '='
@@ -15,6 +19,8 @@
 %left '+' '-' PLUS_ASSIGN MINUS_ASSIGN
 %left '*' '/' '%' STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN
 %right UMINUS UPLUS
+%left '.'
+%left '('
 
 /* Стартер - программа */
 
@@ -49,6 +55,12 @@ type:
     TINT
   | TCHAR
   | TSTR
+  | TARRAY
+  | TARRAY '[' type ']'
+
+type_e:
+  /* empty */
+  '[' type ']'
 
 /* Всё остальное - это выражения */
 
@@ -77,6 +89,36 @@ expr:
   | expr STAR_ASSIGN expr
   | expr SLASH_ASSIGN expr
   | expr PERCENT_ASSIGN expr
+  | type '(' expr_list_e ')'
+  | NEW type '(' expr ')'
+  | expr postfix
+  | expr '(' expr ')'
+
+expr_list:
+    expr
+  | expr_list ',' expr
+
+expr_list_e:
+    /* empty */
+  | expr_list
+
+postfix:
+    '.' EMPTY type_e
+  | '.' APPLY '(' expr_list_e ')'
+  | '.' FILL type_e '(' expr ')' '(' expr ')'
+  | '.' TABULATE type_e '(' expr ')' '(' ID R_ARROW expr ')'
+  | '.' ITERATE type_e '(' expr ',' expr ')' '(' ID R_ARROW expr ')'
+  | '.' RANGE '(' expr ',' expr ')'
+  | '.' RANGE '(' expr ',' expr ',' expr ')'
+  | '.' CONCAT '(' expr_list_e ')'
+  | '.' COPY '(' expr ',' expr ',' expr ',' expr ',' expr ')'
+  | '.' COPY_OF '(' expr ',' expr ')'
+  | '.' FROM type_e '(' expr ')'
+  | '.' HEAD
+  | '.' LAST
+  | '.' LIFT '(' expr ')'
+  | '.' APPLY_OR_ELSE '(' expr ',' expr ')'
+  | '.' UPDATE '(' expr ',' expr ')'
 
 %%
 
