@@ -12,7 +12,9 @@
 %token R_ARROW
 %token LITINT LITCHAR LITSTR
 %token PLUS_ASSIGN MINUS_ASSIGN STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN
+%token IF ELSE
 
+%left IF_EXPR
 %right '='
 %nonassoc EQ NEQ
 %left '<' '>' LESS_EQ GREATER_EQ
@@ -25,6 +27,10 @@
 /* Стартер - программа */
 
 %start program
+
+/* Ожидаем один конфликт - болтающийся else */
+
+%expect 1
 
 %%
 
@@ -59,8 +65,8 @@ type:
   | TARRAY '[' type ']'
 
 type_e:
-  /* empty */
-  '[' type ']'
+    /* empty */
+  | '[' type ']'
 
 /* Всё остальное - это выражения */
 
@@ -70,6 +76,7 @@ expr:
   | LITCHAR
   | LITSTR
   | '(' expr ')'
+  | '{' program '}'
   | expr '+' expr
   | expr '-' expr
   | expr '*' expr
@@ -91,8 +98,10 @@ expr:
   | expr PERCENT_ASSIGN expr
   | type '(' expr_list_e ')'
   | NEW type '(' expr ')'
-  | expr postfix
+  | expr '.' postfix
   | expr '(' expr ')'
+  | IF '(' expr ')' expr %prec IF_EXPR
+  | IF '(' expr ')' expr ELSE expr %prec IF_EXPR
 
 expr_list:
     expr
@@ -103,22 +112,22 @@ expr_list_e:
   | expr_list
 
 postfix:
-    '.' EMPTY type_e
-  | '.' APPLY '(' expr_list_e ')'
-  | '.' FILL type_e '(' expr ')' '(' expr ')'
-  | '.' TABULATE type_e '(' expr ')' '(' ID R_ARROW expr ')'
-  | '.' ITERATE type_e '(' expr ',' expr ')' '(' ID R_ARROW expr ')'
-  | '.' RANGE '(' expr ',' expr ')'
-  | '.' RANGE '(' expr ',' expr ',' expr ')'
-  | '.' CONCAT '(' expr_list_e ')'
-  | '.' COPY '(' expr ',' expr ',' expr ',' expr ',' expr ')'
-  | '.' COPY_OF '(' expr ',' expr ')'
-  | '.' FROM type_e '(' expr ')'
-  | '.' HEAD
-  | '.' LAST
-  | '.' LIFT '(' expr ')'
-  | '.' APPLY_OR_ELSE '(' expr ',' expr ')'
-  | '.' UPDATE '(' expr ',' expr ')'
+    EMPTY type_e
+  | APPLY '(' expr_list_e ')'
+  | FILL type_e '(' expr ')' '(' expr ')'
+  | TABULATE type_e '(' expr ')' '(' ID R_ARROW expr ')'
+  | ITERATE type_e '(' expr ',' expr ')' '(' ID R_ARROW expr ')'
+  | RANGE '(' expr ',' expr ')'
+  | RANGE '(' expr ',' expr ',' expr ')'
+  | CONCAT '(' expr_list_e ')'
+  | COPY '(' expr ',' expr ',' expr ',' expr ',' expr ')'
+  | COPY_OF '(' expr ',' expr ')'
+  | FROM type_e '(' expr ')'
+  | HEAD
+  | LAST
+  | LIFT '(' expr ')'
+  | APPLY_OR_ELSE '(' expr ',' expr ')'
+  | UPDATE '(' expr ',' expr ')'
 
 %%
 
