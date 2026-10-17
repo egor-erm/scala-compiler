@@ -10,6 +10,8 @@ object Main {
       
       val s = "hello world"
 
+
+
       val
       a = 1
       + 2
@@ -51,13 +53,13 @@ object Main {
       // ---------- while ----------
       var i = 0
       while (i < 3) {
-         println(s"while: i = $i")
+         println("while: i = " + i)
          i += 1
       }
 
       // ---------- for ----------
       for (n <- 1 to 3) {
-         println(s"for: n = $n")
+         println("for: n = " + n)
       }
       }
 }

@@ -10,7 +10,14 @@
     #include <fstream>
     #include <string>
     #include <cstdlib>
+    #include <vector>
     using namespace std;
+
+    enum TokenClass { TC_LITERAL, TC_IDENT, TC_KEYWORD, TC_OPERATOR, TC_SEPARATOR };
+
+    void onGap(const char* text);                     // пробелы и комментарии между токенами
+    void onToken(TokenClass cls, const string& text); // учёт токена для вставки nl
+    void printNewline(string kind);
 
     void printLiteral(string type, string literal);
     void printType(string type);
@@ -45,7 +52,7 @@ BIN_LITERAL 0(b|B)(_*{BIN_DIGIT})*
 
 FLOATING_POINT_LITERAL {NUMBER}?"\."{DIGIT}(_*{DIGIT})*{EXP}?{FLOAT_TYPE}?|{NUMBER}{EXP}{FLOAT_TYPE}?|{NUMBER}{FLOAT_TYPE}
 
-WHITESPACE [ \t\r]
+WHITESPACE [ \t\r\n]
 
 OPCHAR [!#%&*+\-/:<=>?@\\^|~]
 OP {OPCHAR}+ 
@@ -72,14 +79,14 @@ CHAR_LITERAL '{CHAR_CONTENT}'
     int mlCommentDepth = 0;
 %}
 
-{WHITESPACE}+        { /* пропуск пробелов */ }
+{WHITESPACE}+        { onGap(YYText()); /* пробелы: могут содержать переводы строк */ }
 
-"//"[^\n]*           { /* пропуск однострочных комментариев */ }
+"//"[^\n]*           { onGap(YYText()); /* однострочный комментарий */ }
 
 "/*"                 { mlCommentDepth = 1; BEGIN(ML_COMMENT); }
-<ML_COMMENT>"/*"     { mlCommentDepth++; }
-<ML_COMMENT>"*/"     { if (--mlCommentDepth == 0) BEGIN(INITIAL); }
-<ML_COMMENT>\n|.     { /* пропускаем перевод строки и символы внутри комментария */ }
+<ML_COMMENT>"/*"     { mlCommentDepth++; onGap(YYText()); }
+<ML_COMMENT>"*/"     { onGap(YYText()); if (--mlCommentDepth == 0) BEGIN(INITIAL); }
+<ML_COMMENT>\n|.     { onGap(YYText()); /* перевод строки внутри комментария учитывается*/ }
 <ML_COMMENT><<EOF>>  { cerr << "ERROR: unterminated multi-line comment" << endl;
                        BEGIN(INITIAL); }
 
@@ -179,12 +186,12 @@ using       { printKeyword(YYText()); }
 
 "&&"    { printOperator(YYText()); }
 "||"    { printOperator(YYText()); }
-"!"    { printOperator(YYText()); }
+"!"     { printOperator(YYText()); }
 
-"&"    { printOperator(YYText()); }
-"^"    { printOperator(YYText()); }
-"|"    { printOperator(YYText()); }
-"~"    { printOperator(YYText()); }
+"&"     { printOperator(YYText()); }
+"^"     { printOperator(YYText()); }
+"|"     { printOperator(YYText()); }
+"~"     { printOperator(YYText()); }
 ">>"    { printOperator(YYText()); }
 "<<"    { printOperator(YYText()); }
 
@@ -229,7 +236,6 @@ using       { printKeyword(YYText()); }
 {OP}        { printIdentificator(YYText()); }
 
 ";"         { printSeparator(YYText()); }
-\n          { printSeparator("NEW LINE"); }
 
 <*>.     { cerr << "Unexpected char \'" << YYText()[0] << "\'" << endl; BEGIN(INITIAL);}
 
@@ -253,27 +259,141 @@ int main(int argc, char** argv) {
     return 0;
 }
 
+bool gapHasNewline = false;   // между предыдущим и текущим токеном был перевод строки
+bool gapHasBlankLine = false; // между токенами несколько перводом строк
+bool gapAfterLF = false;      // после последнего \n встречались только пробельные символы
+bool lastCanEnd = false;      // предыдущий токен может завершать оператор
+
+// Стек областей: ожидаемые закрывающие токены ")", "]", "}", "=>". */
+vector<string> regions;
+
+bool pendingCase = false;     // был case; ещё неизвестно, case class/object или ветка
+
+bool isOneOf(const string& text, initializer_list<const char*> words) {
+    for (const char* w : words) {
+        if (text == w) return true;
+    }
+    return false;
+}
+
+// Токены, которые могут завершать оператор
+bool canEndStatement(TokenClass cls, const string& text) {
+    switch (cls) {
+        case TC_LITERAL:
+        case TC_IDENT:
+            return true;
+        case TC_KEYWORD:
+            if (isOneOf(text, {"this", "null", "true", "false", "return", "type", "_"})) return true;
+            // в Scala 2.13 это не зарезервированные слова, а обычные идентификаторы
+            return isOneOf(text, {"enum", "export", "given", "then", "as", "derives", "end",
+                                  "extension", "infix", "inline", "opaque", "open",
+                                  "transparent", "using"});
+        case TC_OPERATOR:
+            // зарезервированные операторы не завершают оператор, остальные — идентификаторы
+            return !isOneOf(text, {"=", "=>", "<-", "<:", ">:", "<%", ":", "#", "@"});
+        case TC_SEPARATOR:
+            return isOneOf(text, {")", "]", "}"});
+    }
+    return false;
+}
+
+// Токены, которые могут начинать оператор
+bool canBeginStatement(TokenClass cls, const string& text) {
+    switch (cls) {
+        case TC_LITERAL:
+        case TC_IDENT:
+            return true;
+        case TC_KEYWORD:
+            return !isOneOf(text, {"catch", "else", "extends", "finally", "forSome",
+                                   "match", "with", "yield"});
+        case TC_OPERATOR:
+            return !isOneOf(text, {"=", "=>", "<-", "<:", ">:", "<%", ":", "#"});
+        case TC_SEPARATOR:
+            return !isOneOf(text, {",", ";", ".", ")", "]", "}", "["});
+    }
+    return true;
+}
+
+bool newlinesEnabled() {
+    return regions.empty() || regions.back() == "}";
+}
+
+void updateRegions(TokenClass cls, const string& text) {
+    if (cls == TC_SEPARATOR) {
+        if (text == "(") regions.push_back(")");
+        else if (text == "[") regions.push_back("]");
+        else if (text == "{") regions.push_back("}");
+        else if (text == "}") {
+            while (!regions.empty() && regions.back() != "}") regions.pop_back();
+            if (!regions.empty()) regions.pop_back();
+        } else if (text == ")" || text == "]") {
+            if (!regions.empty() && regions.back() == text) regions.pop_back();
+        }
+    } else if (cls == TC_OPERATOR && text == "=>") {
+        if (!regions.empty() && regions.back() == "=>") regions.pop_back();
+    } else if (cls == TC_KEYWORD && text == "case") {
+        pendingCase = true;
+    }
+}
+
+void onGap(const char* text) {
+    for (const char* p = text; *p; p++) {
+        unsigned char c = (unsigned char)*p;
+        if (c == '\n' || c == '\f') {
+            if (gapAfterLF) gapHasBlankLine = true;
+            gapAfterLF = true;
+            gapHasNewline = true;
+        } else if (c > ' ') {
+            gapAfterLF = false;
+        }
+    }
+}
+
+void onToken(TokenClass cls, const string& text) {
+    if (pendingCase) {
+        pendingCase = false;
+        // у case class / case object нет "=>", область для них не открывается
+        if (!(cls == TC_KEYWORD && isOneOf(text, {"class", "object"}))) regions.push_back("=>");
+    }
+    if (gapHasNewline && lastCanEnd && canBeginStatement(cls, text) && newlinesEnabled()) {
+        printNewline(gapHasBlankLine ? "nlnl" : "nl");
+    }
+    gapHasNewline = gapHasBlankLine = gapAfterLF = false;
+    updateRegions(cls, text);
+    lastCanEnd = canEndStatement(cls, text);
+}
+
+void printNewline(string kind) {
+    cout << "newline: " << kind << endl;
+}
+
 void printLiteral(string type, string literal) {
+    onToken(TC_LITERAL, literal);
     cout << type << " literal: " << literal << endl;
 }
 
 void printType(string type) {
+    onToken(TC_IDENT, type);
     cout << "type: " << type << endl;
 }
 
 void printKeyword(string keyword) {
+    onToken(TC_KEYWORD, keyword);
     cout << "keyword: " << keyword << endl;
 }
 
 void printOperator(string op) {
+    onToken(TC_OPERATOR, op);
     cout << "operator: " << op << endl;
 }
 
 void printIdentificator(string id) {
+    onToken(TC_IDENT, id);
     cout << "id: " << id << endl;
 }
 
 void printSeparator(string separator) {
+    onToken(TC_SEPARATOR, separator);
     cout << "separator: " << separator << endl;
 }
 

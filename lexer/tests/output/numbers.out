@@ -2,7 +2,7 @@ int literal: 1234567
 int literal: 1234567
 int literal: 31
 int literal: 10
-separator: NEW LINE
+newline: nl
 double literal: 1.5
 double literal: 1.5e3
 double literal: 1.5

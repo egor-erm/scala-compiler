@@ -1,15 +1,15 @@
 char literal: a
-separator: NEW LINE
+newline: nl
 char literal: \n
-separator: NEW LINE
+newline: nl
 char literal: \t
-separator: NEW LINE
+newline: nl
 char literal: A
-separator: NEW LINE
+newline: nl
 char literal: A
-separator: NEW LINE
+newline: nl
 string literal: Hello
-separator: NEW LINE
+newline: nl
 string literal: Unicode B
-separator: NEW LINE
+newline: nl
 string literal: Octal A

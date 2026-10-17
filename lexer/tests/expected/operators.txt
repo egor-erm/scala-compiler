@@ -3,7 +3,7 @@ operator: -
 operator: *
 operator: /
 operator: %
-separator: NEW LINE
+newline: nl
 operator: ==
 operator: !=
 operator: >
@@ -13,14 +13,13 @@ operator: <=
 operator: &&
 operator: ||
 operator: !
-separator: NEW LINE
+newline: nl
 operator: &
 operator: ^
 operator: |
 operator: ~
 operator: >>
 operator: <<
-separator: NEW LINE
 operator: =
 operator: +=
 operator: -=
@@ -32,7 +31,6 @@ operator: >>=
 operator: &=
 operator: ^=
 operator: |=
-separator: NEW LINE
 operator: =>
 operator: <-
 operator: <:
@@ -40,7 +38,6 @@ operator: >:
 operator: :
 operator: #
 operator: @
-separator: NEW LINE
 separator: (
 separator: )
 separator: [

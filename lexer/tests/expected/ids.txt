@@ -1,25 +1,25 @@
 id: myVariable
-separator: NEW LINE
+newline: nl
 id: _private
-separator: NEW LINE
+newline: nl
 id: a1b2c3
-separator: NEW LINE
+newline: nl
 id: camelCase
-separator: NEW LINE
+newline: nl
 id: snake_case
-separator: NEW LINE
+newline: nl
 id: _underscore_
-separator: NEW LINE
+newline: nl
 id: MyClass
-separator: NEW LINE
+newline: nl
 id: HTMLParser
-separator: NEW LINE
+newline: nl
 id: X1Y2
-separator: NEW LINE
+newline: nl
 id: myVar_+
-separator: NEW LINE
+newline: nl
 id: x_=
-separator: NEW LINE
+newline: nl
 id: Y_=+!
-separator: NEW LINE
+newline: nl
 id: +++

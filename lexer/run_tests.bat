@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set LEXER=lexer.exe
+set LEXER=%~dp0lexer.exe
 set INPUT_DIR=tests\input
 set EXPECTED_DIR=tests\expected
 set OUTPUT_DIR=tests\output

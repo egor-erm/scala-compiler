@@ -1,0 +1,77 @@
+keyword: object
+id: Main
+separator: {
+keyword: val
+id: a
+operator: =
+int literal: 1
+newline: nlnl
+keyword: val
+id: b
+operator: =
+int literal: 2
+operator: +
+newline: nl
+int literal: 3
+newline: nlnl
+keyword: val
+id: c
+operator: =
+separator: (
+int literal: 1
+operator: +
+int literal: 2
+separator: )
+newline: nl
+keyword: val
+id: d
+operator: =
+id: List
+separator: (
+int literal: 1
+separator: ,
+int literal: 2
+separator: )
+newline: nl
+keyword: val
+id: e
+operator: =
+id: a
+separator: .
+id: toString
+newline: nlnl
+keyword: val
+id: f
+operator: =
+keyword: if
+separator: (
+id: a
+operator: >
+int literal: 0
+separator: )
+int literal: 1
+keyword: else
+int literal: 2
+newline: nlnl
+keyword: def
+id: g
+separator: (
+id: x
+operator: :
+type: Int
+separator: )
+operator: =
+id: x
+keyword: match
+separator: {
+keyword: case
+int literal: 1
+operator: =>
+string literal: one
+newline: nl
+keyword: case
+id: _
+operator: =>
+string literal: other
+separator: }
+separator: }
