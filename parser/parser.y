@@ -132,6 +132,7 @@
 %token LINES_WITH_SEPARATORS
 %token SCALA IO STDIN PRINT PRINTLN PRINTF
 %token EXPR_LIST MAKE_STRING
+%token DEF
 
 %left IF_EXPR WHILE_EXPR DO_WHILE_EXPR FOR_EXPR YIELD
 %left EXPR_LIST
@@ -173,18 +174,50 @@ stmt:
 
 /* Определение - это объявление новой переменной и присвоение ей значения */
 
+
+
 def:
-    VAL ID '=' expr ';'
-  | VAR ID '=' expr ';'
-  | VAL ID ':' type '=' expr ';'
-  | VAR ID ':' type '=' expr ';'
+    func_def ';'
+  | var_def ';'
+
+func_def:
+    DEF ID '(' param_list_e ')' '=' expr
+  | DEF ID '(' param_list_e ')' ':' type '=' expr
+  | VAL ID '=' '(' param_list_e ')' R_ARROW expr
+
+var_def:
+    VAL ID '=' expr
+  | VAR ID '=' expr
+  | VAL ID ':' type '=' expr
+  | VAR ID ':' type '=' expr
+  | VAL ID '=' expr '_'
+
+param_list_e:
+    /* empty */
+  | param_list
+
+param_list:
+    ID ':' type
+  | param_list ',' ID ':' type
 
 type:
+    var_type
+  | func_type
+
+var_type:
     TINT
   | TCHAR
   | TSTR
   | TARRAY
   | TARRAY '[' type ']'
+
+func_type:
+    '(' ')' R_ARROW type
+  | '(' type_list ')' R_ARROW type
+
+type_list:
+    type
+  | type_list ',' type
 
 type_e:
     /* empty */
@@ -225,8 +258,8 @@ expr:
   | expr STAR_ASSIGN expr
   | expr SLASH_ASSIGN expr
   | expr PERCENT_ASSIGN expr
-  | type '(' expr_list_e ')'
-  | NEW type '(' expr ')'
+  | var_type '(' expr_list ')'
+  | NEW var_type '(' expr ')' 
   | expr '.' array_postfix
   | expr '(' expr ')'
   | if_expr
