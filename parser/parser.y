@@ -134,6 +134,7 @@
 %token EXPR_LIST MAKE_STRING
 %token DEF ABSTRACT SEALED FINAL OVERRIDE LAZY TRAIT EXTENDS CLASS WITH SUPER
 %token PRIVATE PROTECTED PUBLIC THIS
+%token IMPORT VALUE TYPE ENUMERATION OBJECT
 
 %left IF_EXPR WHILE_EXPR DO_WHILE_EXPR FOR_EXPR YIELD
 %left EXPR_LIST
@@ -188,7 +189,11 @@ def:
   | var_def ';'
   | class_def ';'
   | trait_def ';'
+  | enum_def ';'
   | def_prefix def
+
+enum_def:
+    OBJECT ID EXTENDS ENUMERATION '{' TYPE ID '=' VALUE ';' VAL id_list '=' VALUE '}'
 
 def_prefix:
     ABSTRACT
@@ -306,6 +311,7 @@ read_type:
 
 expr:
     ID
+  | IMPORT ID '.' '_'
   | SUPER
   | '(' expr ')' R_ARROW expr
   | '_'
