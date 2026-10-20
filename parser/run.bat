@@ -1,1 +1,1 @@
-win_bison.exe -v parser.y
+win_bison.exe -v -Wcounterexamples parser.y
