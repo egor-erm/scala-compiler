@@ -7,11 +7,11 @@
 %token WHILE DO FOR
 %token VAL VAR
 %token ID
-%token TINT TCHAR TSTR TDOUBLE
+%token TINT TCHAR TSTR TDOUBLE TBOOL
 %token NEW TARRAY TLIST
 %token EMPTY APPLY FILL TABULATE RANGE ITERATE CONCAT COPY COPY_OF FROM HEAD LAST LIFT APPLY_OR_ELSE UPDATE
 %token R_ARROW
-%token LITINT LITCHAR LITSTR LITDOUBLE
+%token LITINT LITCHAR LITSTR LITDOUBLE LITBOOL
 %token READINT READCHAR READLINE
 %token PLUS_ASSIGN MINUS_ASSIGN STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN
 %token IF ELSE
@@ -141,7 +141,13 @@
 %left '<' '>' LESS_EQ GREATER_EQ
 %left '+' '-' PLUS_ASSIGN MINUS_ASSIGN
 %left '*' '/' '%' STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN
-%right UMINUS UPLUS
+
+%left OR '|' OR_ASSIGN
+%left '^'
+%left AND '&' AND_ASSIGN
+
+%right UMINUS UPLUS UEXCL UTILDA
+
 %nonassoc R_ARROW
 %left '.'
 %left '(' ')'
@@ -269,6 +275,7 @@ var_type:
   | TDOUBLE
   | TCHAR
   | TSTR
+  | TBOOL
   | TARRAY
   | TARRAY '[' type ']'
 
@@ -299,6 +306,7 @@ expr:
   | LITINT
   | LITCHAR
   | LITSTR
+  | LITBOOL
   | LITDOUBLE
   | '(' expr ')'
   | '{' program '}'
@@ -316,11 +324,20 @@ expr:
   | expr LESS_EQ expr
   | expr GREATER_EQ expr
   | expr '=' expr
+  | expr AND expr
+  | expr '&' expr
+  | expr OR expr
+  | expr '|' expr
+  | expr '^' expr
+  | '!' expr %prec UEXCL
+  | '~' expr %prec UTILDA
   | expr PLUS_ASSIGN expr
   | expr MINUS_ASSIGN expr
   | expr STAR_ASSIGN expr
   | expr SLASH_ASSIGN expr
   | expr PERCENT_ASSIGN expr
+  | expr AND_ASSIGN
+  | expr OR_ASSIGN
   | var_type '(' expr_list ')'
   | NEW var_type '(' expr ')' 
   | NEW ID '(' expr_list ')'
