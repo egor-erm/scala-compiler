@@ -132,7 +132,7 @@
 %token LINES_WITH_SEPARATORS
 %token SCALA IO STDIN PRINT PRINTLN PRINTF
 %token EXPR_LIST MAKE_STRING
-%token DEF
+%token DEF ABSTRACT SEALED FINAL OVERRIDE LAZY TRAIT EXTENDS CLASS WITH SUPER
 
 %left IF_EXPR WHILE_EXPR DO_WHILE_EXPR FOR_EXPR YIELD
 %left EXPR_LIST
@@ -179,6 +179,66 @@ stmt:
 def:
     func_def ';'
   | var_def ';'
+  | class_def ';'
+  | trait_def ';'
+  | def_prefix def
+
+def_prefix:
+    ABSTRACT
+  | SEALED
+  | FINAL
+  | OVERRIDE
+  | LAZY
+
+trait_def:
+    TRAIT ID
+  | TRAIT ID '{' def_list_e '}'
+  | TRAIT ID EXTENDS id_with_id
+  | TRAIT ID EXTENDS id_with_id '{' def_list_e '}'
+
+class_def:
+    CLASS ID
+  | CLASS ID '{' def_list_e '}'
+  | CLASS ID EXTENDS id_with_id
+  | CLASS ID EXTENDS id_with_id '{' def_list_e '}'
+  | CLASS ID '(' field_list_e ')' 
+  | CLASS ID '(' field_list_e ')' '{' def_list_e '}'
+  | CLASS ID '(' field_list_e ')' EXTENDS id_with_id
+  | CLASS ID '(' field_list_e ')' EXTENDS id_with_id '{' def_list_e '}'
+
+id_with_id:
+    ID
+  | ID '(' id_list_e ')'
+  | id_with_id WITH ID
+  | id_with_id WITH ID '(' id_list_e ')'
+
+id_list_e:
+    /* empty */
+  | id_list
+
+id_list:
+    ID
+  | id_list ',' ID
+
+field_list_e:
+    /* empty */
+  | field_list
+
+field_list:
+    field
+  | field_list ',' field
+
+field:
+    VAL ID ':' type
+  | VAR ID ':' type
+
+def_list_e:
+    /* empty */
+  | def_list
+
+def_list:
+    def
+  | def_list def
 
 func_def:
     DEF ID '(' param_list_e ')' '=' expr
@@ -232,6 +292,7 @@ read_type:
 
 expr:
     ID
+  | SUPER
   | '(' expr ')' R_ARROW expr
   | '_'
   | LITINT
@@ -260,6 +321,7 @@ expr:
   | expr PERCENT_ASSIGN expr
   | var_type '(' expr_list ')'
   | NEW var_type '(' expr ')' 
+  | NEW ID '(' expr_list ')'
   | expr '.' array_postfix
   | expr '(' expr ')'
   | if_expr
@@ -270,6 +332,7 @@ expr:
   | PRINT '(' expr ')'
   | PRINTLN '(' expr ')'
   | PRINTF '(' expr_list ')'
+  | expr '.' ID
 
 if_expr:
     IF '(' expr ')' expr %prec IF_EXPR
