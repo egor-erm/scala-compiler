@@ -10,7 +10,7 @@ keyword: val
 id: b
 operator: =
 int literal: 2
-operator: +
+id: +
 newline: nl
 int literal: 3
 newline: nlnl
@@ -19,7 +19,7 @@ id: c
 operator: =
 separator: (
 int literal: 1
-operator: +
+id: +
 int literal: 2
 separator: )
 newline: nl
@@ -46,7 +46,7 @@ operator: =
 keyword: if
 separator: (
 id: a
-operator: >
+id: >
 int literal: 0
 separator: )
 int literal: 1

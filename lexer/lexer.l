@@ -18,6 +18,7 @@
     void onGap(const char* text);                     // пробелы и комментарии между токенами
     void onToken(TokenClass cls, const string& text); // учёт токена для вставки nl
     void printNewline(string kind);
+    bool isReservedOp(const string& text);
 
     void printLiteral(string type, string literal);
     void printType(string type);
@@ -144,6 +145,7 @@ yield       { printKeyword(YYText()); }
 ":"         { printOperator(YYText()); }
 "#"         { printOperator(YYText()); }
 "@"         { printOperator(YYText()); }
+"<%"        { printOperator(YYText()); }
 
 as          { printKeyword(YYText()); } /* Soft keywords */
 derives     { printKeyword(YYText()); }
@@ -171,42 +173,6 @@ using       { printKeyword(YYText()); }
 ","         { printSeparator(YYText()); }
 "."         { printSeparator(YYText()); }
 
-"+"     { printOperator(YYText()); } /* Операторы */
-"-"     { printOperator(YYText()); }
-"*"     { printOperator(YYText()); }
-"/"     { printOperator(YYText()); }
-"%"     { printOperator(YYText()); }
-
-"=="    { printOperator(YYText()); }
-"!="    { printOperator(YYText()); }
-">"     { printOperator(YYText()); }
-"<"     { printOperator(YYText()); }
-">="    { printOperator(YYText()); }
-"<="    { printOperator(YYText()); }
-
-"&&"    { printOperator(YYText()); }
-"||"    { printOperator(YYText()); }
-"!"     { printOperator(YYText()); }
-
-"&"     { printOperator(YYText()); }
-"^"     { printOperator(YYText()); }
-"|"     { printOperator(YYText()); }
-"~"     { printOperator(YYText()); }
-">>"    { printOperator(YYText()); }
-"<<"    { printOperator(YYText()); }
-
-"="     { printOperator(YYText()); }
-"+="    { printOperator(YYText()); }
-"-="    { printOperator(YYText()); }
-"*="    { printOperator(YYText()); }
-"/="    { printOperator(YYText()); }
-"%="    { printOperator(YYText()); }
-"<<="   { printOperator(YYText()); }
-">>="   { printOperator(YYText()); }
-"&="    { printOperator(YYText()); }
-"^="    { printOperator(YYText()); }
-"|="    { printOperator(YYText()); }
-
 {CHAR_LITERAL}              { printLiteral("char", normalizeChar(YYText())); }
 
 \"                      { stringBuffer = ""; BEGIN(STRING); }
@@ -233,7 +199,26 @@ using       { printKeyword(YYText()); }
 
 {VARID}     { printIdentificator(YYText()); }
 {CONID}     { printIdentificator(YYText()); }
-{OP}        { printIdentificator(YYText()); }
+{OP}        {
+    /* Комментарий внутри последовательности символов обрывает её, например */
+    string text = YYText();
+    size_t cut = text.find("/*");
+    size_t cutLine = text.find("//");
+    if (cutLine != string::npos && (cut == string::npos || cutLine < cut)) cut = cutLine;
+
+    if (cut == 0) {                       // "/*...": начало многострочного комментария
+        yyless(2);
+        mlCommentDepth = 1;
+        BEGIN(ML_COMMENT);
+    } else {
+        if (cut != string::npos) {
+            yyless(cut);
+            text = text.substr(0, cut);
+        }
+        if (isReservedOp(text)) printOperator(text);
+        else printIdentificator(text);    // +, -, *, ==, ::: и т.п. — идентификаторы
+    }
+}
 
 ";"         { printSeparator(YYText()); }
 
@@ -268,6 +253,11 @@ bool lastCanEnd = false;      // предыдущий токен может за
 vector<string> regions;
 
 bool pendingCase = false;     // был case; ещё неизвестно, case class/object или ветка
+
+bool isReservedOp(const string& text) {
+    return text == "=" || text == "=>" || text == "<-" || text == "<:" || text == ">:"
+        || text == "<%" || text == ":" || text == "#" || text == "@";
+}
 
 bool isOneOf(const string& text, initializer_list<const char*> words) {
     for (const char* w : words) {

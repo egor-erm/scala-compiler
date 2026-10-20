@@ -124,3 +124,13 @@ nl_opt  : /* empty */ | NL ;                /* строго одиночный *
 if_expr : IF '(' expr ')' nls expr
         | IF '(' expr ')' nls expr opt_semi ELSE nls expr ;
 opt_semi : /* empty */ | ';' ;
+
+
+Ситуация:
+a +/* c */ b
+
+до: 
+id: a, id: +/*, id: c, id: */, id: b
+
+после:
+id: a, id: +, id: b

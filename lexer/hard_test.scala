@@ -37,6 +37,10 @@ object Main {
       // ---------- if ----------
       val x = 10
       val y = 45
+
+      val z = x +/* c */ y
+      println(z)
+
       if (x > 5) {
          println("x больше 5")
       } else {
