@@ -183,7 +183,16 @@ stmt:
 /* Определение - это объявление новой переменной и присвоение ей значения */
 
 
+/*
 
+list:
+    elem
+  | elem list
+
+*/
+
+
+/* возможно, не везде нужна точка с запятой (любой символ для разграничивания инструкций) */
 def:
     func_def ';'
   | var_def ';'
@@ -195,6 +204,7 @@ def:
 enum_def:
     OBJECT ID EXTENDS ENUMERATION '{' TYPE ID '=' VALUE ';' VAL id_list '=' VALUE '}'
 
+/* не все не для всего. надо разбить под дефам и выписать варианты. особенно - если порядок строгий */
 def_prefix:
     ABSTRACT
   | SEALED
@@ -204,9 +214,10 @@ def_prefix:
   | PRIVATE
   | PROTECTED
   | PUBLIC
-  | PRIVATE '[' ID ']'
-  | PRIVATE '[' THIS ']'
+  | PRIVATE '[' ID ']' /* проверить, для одного приватный  или может быть для нескольких */
+  | PRIVATE '[' THIS ']' /* узнать, можно ли комбинировать ID-шники и THIS */
 
+/* трейты скорее всего надо убрать */
 trait_def:
     TRAIT ID
   | TRAIT ID '{' def_list_e '}'
@@ -223,6 +234,7 @@ class_def:
   | CLASS ID '(' field_list_e ')' EXTENDS id_with_id
   | CLASS ID '(' field_list_e ')' EXTENDS id_with_id '{' def_list_e '}'
 
+/* сюда возможно вместо ID можно передавать expr. надо проверить случай extends <class name>(0) или (i+4) */
 id_with_id:
     ID
   | ID '(' id_list_e ')'
@@ -267,7 +279,7 @@ var_def:
   | VAR ID '=' expr
   | VAL ID ':' type '=' expr
   | VAR ID ':' type '=' expr
-  | VAL ID '=' expr '_'
+  | VAL ID '=' expr '_' /* скорее всего func_def */
 
 param_list_e:
     /* empty */
@@ -354,17 +366,20 @@ expr:
   | NEW var_type '(' expr ')' 
   | NEW ID '(' expr_list ')'
   | expr '.' array_postfix
-  | expr '(' expr ')'
+  | expr '(' expr_list_e ')'
   | if_expr
   | while_expr
   | do_while_expr
   | for_expr %prec FOR_EXPR
+  /* функции для печати вшиты в код, но должны подхватываться верхними правилами. 
+  мы смотрим, что это такое, на уровне семантики */
   | SCALA '.' IO '.' STDIN '.' read_type '(' ')'
   | PRINT '(' expr ')'
   | PRINTLN '(' expr ')'
   | PRINTF '(' expr_list ')'
   | expr '.' ID
 
+/* возможно, нельзя без else'а присваивать значение переменной */
 if_expr:
     IF '(' expr ')' expr %prec IF_EXPR
   | IF '(' expr ')' expr ELSE expr %prec IF_EXPR
@@ -401,6 +416,7 @@ expr_list_e:
     /* empty */
   | expr_list
 
+/* тоже вшиты, но должны подхватываться правилами для expr */
 array_postfix:
     EMPTY type_e
   | APPLY '(' expr_list_e ')'
@@ -422,11 +438,13 @@ array_postfix:
   | UPDATE '(' expr ',' expr ')'
   | TO_ARRAY
 
+/* и это тоже на семантике */
 mk_string_postfix:
     MK_STRING '(' ')'
   | MK_STRING '(' expr ')'
   | MK_STRING '(' expr ',' expr ',' expr ')'
 
+/* тоже на семантике */
 for_expr_postfix:
     FOREACH '(' expr ')'
   | TAPEACH '(' expr ')'
