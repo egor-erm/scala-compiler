@@ -19,6 +19,9 @@
     void onToken(TokenClass cls, const string& text); // учёт токена для вставки nl
     void printNewline(string kind);
 
+    size_t commentStart(const string& text);          // начало "//" или "/*" внутри токена
+    bool isOperator(const string& text);              // оператор, а не символьный идентификатор
+
     void printLiteral(string type, string literal);
     void printType(string type);
     void printKeyword(string keyword);
@@ -83,7 +86,6 @@ CHAR_LITERAL '{CHAR_CONTENT}'
 
 "//"[^\n]*           { onGap(YYText()); /* однострочный комментарий */ }
 
-"/*"                 { mlCommentDepth = 1; BEGIN(ML_COMMENT); }
 <ML_COMMENT>"/*"     { mlCommentDepth++; onGap(YYText()); }
 <ML_COMMENT>"*/"     { onGap(YYText()); if (--mlCommentDepth == 0) BEGIN(INITIAL); }
 <ML_COMMENT>\n|.     { onGap(YYText()); /* перевод строки внутри комментария учитывается*/ }
@@ -137,14 +139,6 @@ while       { printKeyword(YYText()); }
 with        { printKeyword(YYText()); }
 yield       { printKeyword(YYText()); }
 
-"=>"        { printOperator(YYText()); }
-"<-"        { printOperator(YYText()); }
-"<:"        { printOperator(YYText()); }
-">:"        { printOperator(YYText()); }
-":"         { printOperator(YYText()); }
-"#"         { printOperator(YYText()); }
-"@"         { printOperator(YYText()); }
-
 as          { printKeyword(YYText()); } /* Soft keywords */
 derives     { printKeyword(YYText()); }
 end         { printKeyword(YYText()); }
@@ -171,43 +165,7 @@ using       { printKeyword(YYText()); }
 ","         { printSeparator(YYText()); }
 "."         { printSeparator(YYText()); }
 
-"+"     { printOperator(YYText()); } /* Операторы */
-"-"     { printOperator(YYText()); }
-"*"     { printOperator(YYText()); }
-"/"     { printOperator(YYText()); }
-"%"     { printOperator(YYText()); }
-
-"=="    { printOperator(YYText()); }
-"!="    { printOperator(YYText()); }
-">"     { printOperator(YYText()); }
-"<"     { printOperator(YYText()); }
-">="    { printOperator(YYText()); }
-"<="    { printOperator(YYText()); }
-
-"&&"    { printOperator(YYText()); }
-"||"    { printOperator(YYText()); }
-"!"     { printOperator(YYText()); }
-
-"&"     { printOperator(YYText()); }
-"^"     { printOperator(YYText()); }
-"|"     { printOperator(YYText()); }
-"~"     { printOperator(YYText()); }
-">>"    { printOperator(YYText()); }
-"<<"    { printOperator(YYText()); }
-
-"="     { printOperator(YYText()); }
-"+="    { printOperator(YYText()); }
-"-="    { printOperator(YYText()); }
-"*="    { printOperator(YYText()); }
-"/="    { printOperator(YYText()); }
-"%="    { printOperator(YYText()); }
-"<<="   { printOperator(YYText()); }
-">>="   { printOperator(YYText()); }
-"&="    { printOperator(YYText()); }
-"^="    { printOperator(YYText()); }
-"|="    { printOperator(YYText()); }
-
-{CHAR_LITERAL}              { printLiteral("char", normalizeChar(YYText())); }
+{CHAR_LITERAL}            { printLiteral("char", normalizeChar(YYText())); }
 
 \"                      { stringBuffer = ""; BEGIN(STRING); }
 <STRING>[^\\\"\n]+      { stringBuffer += YYText(); }
@@ -231,9 +189,35 @@ using       { printKeyword(YYText()); }
 <STRING>\n           { cerr << "ERROR: EOL in string" << endl;
                        BEGIN(INITIAL); }
 
-{VARID}     { printIdentificator(YYText()); }
-{CONID}     { printIdentificator(YYText()); }
-{OP}        { printIdentificator(YYText()); }
+{VARID}|{CONID}  {
+    /* операторная часть имени обрывается на комментарии: a_+/*...*/
+    string text = YYText();
+    size_t cut = commentStart(text);
+    if (cut != string::npos) {
+        yyless(cut);
+        text = text.substr(0, cut);
+    }
+    printIdentificator(text);
+}
+
+{OP} {
+    /* Обработка ситуаций по типу "a +/* c * b" (чтобы +/* не распознался как идентификатор) */
+    string text = YYText();
+    size_t cut = commentStart(text);
+
+    if (cut == 0) {                 /* "//" сюда не попадает: его правило длиннее или выше */
+        yyless(2);
+        mlCommentDepth = 1;
+        BEGIN(ML_COMMENT);
+    } else {
+        if (cut != string::npos) {
+            yyless(cut);
+            text = text.substr(0, cut);
+        }
+        if (isOperator(text)) printOperator(text);
+        else printIdentificator(text);
+    }
+}
 
 ";"         { printSeparator(YYText()); }
 
@@ -274,6 +258,24 @@ bool isOneOf(const string& text, initializer_list<const char*> words) {
         if (text == w) return true;
     }
     return false;
+}
+
+// Позиция первого "//" или "/*" в токене либо string::npos
+size_t commentStart(const string& text) {
+    size_t lineComment = text.find("//");
+    size_t blockComment = text.find("/*");
+    return lineComment < blockComment ? lineComment : blockComment;
+}
+
+// Остальные последовательности символов операторов — идентификаторы
+bool isOperator(const string& text) {
+    return isOneOf(text, {"=>", "<-", "<:", ">:", ":", "#", "@",
+                          "+", "-", "*", "/", "%",
+                          "==", "!=", ">", "<", ">=", "<=",
+                          "&&", "||", "!",
+                          "&", "^", "|", "~", ">>", "<<",
+                          "=", "+=", "-=", "*=", "/=", "%=",
+                          "<<=", ">>=", "&=", "^=", "|="});
 }
 
 // Токены, которые могут завершать оператор
