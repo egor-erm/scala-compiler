@@ -1,599 +1,571 @@
-/* токены */
+%{
+/* Пролог (Prologue): C-объявления, макросы, #include */
+%}
 
-%token UNDERSCORE
-%token SEPARATOR
+/* Объявления Bison (Bison declarations) */
+
+%token WHILE DO FOR
 %token VAL VAR
 %token ID
-%token TINT TCHAR TSTR
-%token TARRAY TLIST TDOUBLE TFLOAT TBOOL
-%token LITINT LITCHAR LITSTR
-%token COLON
-%token ASSIGN PLUS_ASSIGN MINUS_ASSIGN STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN
-%token PLUS MINUS STAR SLASH PERCENT EXCL TILDA
-%token EQ NEQ LESS_EQ GREATER_EQ LESS_NEQ GREATER_NEQ
-%token LPAR RPAR SQ_LPAR SQ_RPAR CURV_LPAR CURV_RPAR
-%token NEW DOT FROM FILL TABULATE RANGE COMMA ITERATE RARROW CONCAT TO TOTARRAY TOARRAY EMPTY
-%token LIST NIL CONS VECTOR SEQ SET MAP ARRAY APPLY UPDATE HEAD LAST
-%token IF ELSE MATCH CASE AT_SIGN SOME NONE OR
-%token WHILE DO FOR BY UNTIL YIELD
-%token DEF PRINT PRINTLN PRINTF CONSOLE ERR READINT READCHAR READLINE
-%token CLASS FINAL ABSTRACT SEALED TRAIT EXTENDS WITH PRIVATE PROTECTED PACKAGE THIS OVERRIDE SUPER
-%token AND BYTE_AND BYTE_OR BYTE_XOR
-%token OBJECT ENUMERATION TYPE VALUE IMPORT
-%token TRY CATCH FINALLY E EXCEPTION THROW SUCCESS V FAILURE NONFATAL
-%token EITHER OPTION
-%token LARROW TOLIST
-%token OR_ASSIGN XOR_ASSIGN AND_ASSIGN SUBTYPE SUPERTYPE CONTEXT_FUNC HASH QMARK BACKSLASH
-%token UMINUS UPLUS UEXCL UTILDA
+%token TINT TCHAR TSTR TDOUBLE TBOOL
+%token NEW TARRAY TLIST
+%token EMPTY APPLY FILL TABULATE RANGE ITERATE CONCAT COPY COPY_OF FROM HEAD LAST LIFT APPLY_OR_ELSE UPDATE
+%token R_ARROW
+%token LITINT LITCHAR LITSTR LITDOUBLE LITBOOL
+%token READINT READCHAR READLINE
+%token PLUS_ASSIGN MINUS_ASSIGN STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN
+%token IF ELSE
+%token L_ARROW
+%token TO
+%token UNITL
+%token BY
+%token YIELD
+%token TO_ARRAY
+%token FOREACH
+%token TAPEACH
+%token FILTER
+%token FILTER_NOT
+%token PARTITION
+%token PARTITION_MAP
+%token DISTINCT
+%token DISTINCT_BY
+%token COLLECT
+%token COLLECT_FIRST
+%token CASE
+%token DROP
+%token DROP_RIGHT
+%token DROP_WHILE
+%token TAKE
+%token TAKE_RIGHT
+%token TAKE_WHILE
+%token SPAN
+%token SLICE
+%token SPLIT_AT
+%token FIND
+%token FIND_LAST
+%token INDEX_WHERE
+%token LAST_INDEX_WHERE
+%token INDEX_OF
+%token LAST_INDEX_OF
+%token INDEX_OF_SLICE
+%token LAST_INDEX_OF_SLICE
+%token CONTAINS
+%token CONTAINS_SLICE
+%token EXISTS
+%token FORALL
+%token COUNT
+%token FOLD
+%token FOLD_LEFT
+%token FOLD_RIGHT
+%token REDUCE
+%token REDUCE_LEFT
+%token REDUCE_RIGHT
+%token REDUCE_OPTION
+%token REDUCE_LEFT_OPTION
+%token REDUCE_RIGHT_OPTION
+%token SUM
+%token MIN
+%token MAX
+%token MIN_BY
+%token MAX_BY
+%token MIN_OPTION
+%token MAX_OPTION
+%token MIN_BY_OPTION
+%token MAX_BY_OPTION
+%token GROUP_BY
+%token GROUP_MAP
+%token GROUP_MAP_REDUCE
+%token GROUPED
+%token SLIDING
+%token ZIP
+%token ZIP_WITH_INDEX
+%token LAZY_ZIP
+%token MAP
+%token FLAT_MAP
+%token SCAN
+%token SCAN_LEFT
+%token SCAN_RIGHT
+%token VIEW
+%token SIZE
+%token IS_EMPTY
+%token NON_EMPTY
+%token SIZE_COMPARE
+%token KNOWN_SIZE
+%token HEAD_OPTION
+%token LAST_OPTION
+%token TAIL
+%token INIT
+%token IS_DEFINED_AT
+%token INDICES
+%token LENGTH
+%token LENGTH_COMPARE
+%token REVERSE
+%token REVERSE_ITERATOR
+%token SORTED
+%token SORT_BY
+%token SORT_WITH
+%token SORT_IN_PLACE
+%token MK_STRING
+%token ADD_STRING
+%token SAME_ELEMENTS
+%token CORRESPONDS
+%token DIFF
+%token INTERSECT
+%token UNION
+%token PATCH
+%token UPDATED
+%token KEYS
+%token VALUES
+%token KEY_SET
+%token GET
+%token GET_OR_ELSE
+%token HAS_NEXT
+%token NEXT
+%token NEXT_OPTION
+%token BUFFERED
+%token DUPLICATE
+%token CAPITALIZE
+%token TO_UPPER_CASE
+%token TO_LOWER_CASE
+%token STRIP_LINE_END
+%token LINES_ITERATOR
+%token LINES_WITH_SEPARATORS
+%token SCALA IO STDIN PRINT PRINTLN PRINTF
+%token EXPR_LIST MAKE_STRING
+%token DEF ABSTRACT SEALED FINAL OVERRIDE LAZY TRAIT EXTENDS CLASS WITH SUPER
+%token PRIVATE PROTECTED PUBLIC THIS
+%token IMPORT VALUE TYPE ENUMERATION OBJECT
 
-/* приоритеты и ассоциативность */
-
-%right ASSIGN
-%left OR_ASSIGN OR
-%left XOR_ASSIGN XOR
-%left AND_ASSIGN AND
+%left IF_EXPR WHILE_EXPR DO_WHILE_EXPR FOR_EXPR YIELD
+%left EXPR_LIST
+%right '='
 %nonassoc EQ NEQ
-%left LESS_NEQ GREATER_NEQ LESS_EQ GREATER_EQ
-%right SUBTYPE SUPERTYPE
-%right COLON
-%left PLUS MINUS PLUS_ASSIGN MINUS_ASSIGN
-%left STAR SLASH PERCENT STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN
-%left CONTEXT_FUNC HASH AT_SIGN QMARK BACKSLASH
+%left '<' '>' LESS_EQ GREATER_EQ
+%left '+' '-' PLUS_ASSIGN MINUS_ASSIGN
+%left '*' '/' '%' STAR_ASSIGN SLASH_ASSIGN PERCENT_ASSIGN
+
+%left OR '|' OR_ASSIGN
+%left '^'
+%left AND '&' AND_ASSIGN
+
 %right UMINUS UPLUS UEXCL UTILDA
+
+%nonassoc R_ARROW
+%left '.'
+%left '(' ')'
+%left MAKE_STRING
+
+/* Стартер - программа */
 
 %start program
 
+/* Ожидаем один конфликт - болтающийся else */
+
+%expect 1
+
 %%
 
-/* стартер, инструкции */
+/* Грамматические правила (Grammar rules) */
+
+/* Программа - это набор инструкций (утверждений). Этот набор может быть пустым. */
 
 program:
-    stmt_list_e
-;
-
-stmt_list_e:
     /* empty */
-  | stmt_list
-;
+  | program stmt
+  ;
 
-stmt_list:
-    stmt
-  | stmt_list SEPARATOR stmt
-  | stmt_list SEPARATOR
-;
+/* Инструкциями являются определения и выражения. В конце каждой инструкции идёт разделитель */
 
 stmt:
     def
-  | expr
-  | output
-  | input
-;
+  | expr ';'
 
-/* определения */
+/* Определение - это объявление новой переменной и присвоение ей значения */
 
+
+/*
+
+list:
+    elem
+  | elem list
+
+*/
+
+
+/* возможно, не везде нужна точка с запятой (любой символ для разграничивания инструкций) */
 def:
-    var_def
-  | func_def
-  | class_def
-  | trait_def
-  | aux_constructor_def
-  | final_func_def
-  | enum_def
-;
+    func_def ';'
+  | var_def ';'
+  | class_def ';'
+  | trait_def ';'
+  | enum_def ';'
+  | def_prefix def
 
-/* переменные, массивы, списки */
+enum_def:
+    OBJECT ID EXTENDS ENUMERATION '{' TYPE ID '=' VALUE ';' VAL id_list '=' VALUE '}'
 
-var_def:
-    VAL ID opt_type_ann ASSIGN expr
-  | VAR ID opt_type_ann ASSIGN expr
-;
+/* не все не для всего. надо разбить под дефам и выписать варианты. особенно - если порядок строгий */
+def_prefix:
+    ABSTRACT
+  | SEALED
+  | FINAL
+  | OVERRIDE
+  | LAZY
+  | PRIVATE
+  | PROTECTED
+  | PUBLIC
+  | PRIVATE '[' ID ']' /* проверить, для одного приватный  или может быть для нескольких */
+  | PRIVATE '[' THIS ']' /* узнать, можно ли комбинировать ID-шники и THIS */
 
-opt_type_ann:
-    /* empty */
-  | COLON type
-;
+/* трейты скорее всего надо убрать */
+trait_def:
+    TRAIT ID
+  | TRAIT ID '{' def_list_e '}'
+  | TRAIT ID EXTENDS id_with_id
+  | TRAIT ID EXTENDS id_with_id '{' def_list_e '}'
 
-/* типы */
+class_def:
+    CLASS ID
+  | CLASS ID '{' def_list_e '}'
+  | CLASS ID EXTENDS id_with_id
+  | CLASS ID EXTENDS id_with_id '{' def_list_e '}'
+  | CLASS ID '(' field_list_e ')' 
+  | CLASS ID '(' field_list_e ')' '{' def_list_e '}'
+  | CLASS ID '(' field_list_e ')' EXTENDS id_with_id
+  | CLASS ID '(' field_list_e ')' EXTENDS id_with_id '{' def_list_e '}'
 
-type:
-    simple_type
-  | simple_type WITH trait_list
-;
-
-simple_type:
-    TINT
-  | TCHAR
-  | TSTR
-  | TDOUBLE
-  | TFLOAT
-  | TBOOL
-  | TARRAY
-  | TARRAY SQ_LPAR type SQ_RPAR
-  | TLIST SQ_LPAR type SQ_RPAR
-  | EITHER SQ_LPAR type COMMA type SQ_RPAR
-  | OPTION SQ_LPAR type SQ_RPAR
-  | ID
-;
-
-/* функции */
-
-func_def:
-    DEF ID LPAR param_list_e RPAR COLON type ASSIGN expr
-  | DEF ID LPAR param_list_e RPAR ASSIGN expr
-  | DEF ID COLON type ASSIGN expr
-  | DEF ID ASSIGN expr
-  | DEF ID param_list_e_seq COLON type ASSIGN expr
-  | DEF ID param_list_e_seq ASSIGN expr
-  | VAL ID COLON type RARROW type ASSIGN ID RARROW expr
-  | VAL ID COLON LPAR type_list_e RPAR RARROW type ASSIGN LPAR id_list_e RPAR RARROW expr
-  | VAL ID ASSIGN LPAR param_list_e RPAR RARROW expr
-  | VAL ID COLON type RARROW type ASSIGN expr
-  | VAL ID COLON LPAR type_list_e RPAR RARROW type ASSIGN expr
-  | VAL ID COLON type RARROW type ASSIGN CURV_LPAR ID RARROW stmt_list expr CURV_RPAR
-  | VAL ID COLON LPAR type_list_e RPAR RARROW type ASSIGN CURV_LPAR ID RARROW stmt_list expr CURV_RPAR
-;
-
-final_func_def:
-    FINAL func_def
-;
-
-param_list_e_seq:
-    LPAR param_list_e RPAR
-  | param_list_e_seq LPAR param_list_e RPAR
-;
+/* сюда возможно вместо ID можно передавать expr. надо проверить случай extends <class name>(0) или (i+4) */
+id_with_id:
+    ID
+  | ID '(' id_list_e ')'
+  | id_with_id WITH ID
+  | id_with_id WITH ID '(' id_list_e ')'
 
 id_list_e:
     /* empty */
   | id_list
-;
 
 id_list:
     ID
-  | id_list COMMA ID
-;
+  | id_list ',' ID
 
-type_list_e:
+field_list_e:
     /* empty */
-  | type_list
-;
+  | field_list
 
-type_list:
-    type
-  | type_list COMMA type
-;
+field_list:
+    field
+  | field_list ',' field
+
+field:
+    VAL ID ':' type
+  | VAR ID ':' type
+
+def_list_e:
+    /* empty */
+  | def_list
+
+def_list:
+    def
+  | def_list def
+
+func_def:
+    DEF ID '(' param_list_e ')' '=' expr
+  | DEF ID '(' param_list_e ')' ':' type '=' expr
+  | VAL ID '=' '(' param_list_e ')' R_ARROW expr
+
+var_def:
+    VAL ID '=' expr
+  | VAR ID '=' expr
+  | VAL ID ':' type '=' expr
+  | VAR ID ':' type '=' expr
+  | VAL ID '=' expr '_' /* скорее всего func_def */
 
 param_list_e:
     /* empty */
   | param_list
-;
 
 param_list:
-    param
-  | param_list COMMA param
-;
+    ID ':' type
+  | param_list ',' ID ':' type
 
-param:
-    ID COLON type
-  | ID COLON type ASSIGN expr
-  | ID COLON type STAR
-  | ID COLON type RARROW type
-  | ID COLON LPAR type_list_e RPAR RARROW type
-;
+type:
+    var_type
+  | func_type
 
-/* классы, трейты, конструкторы */
+var_type:
+    TINT
+  | TDOUBLE
+  | TCHAR
+  | TSTR
+  | TBOOL
+  | TARRAY
+  | TARRAY '[' type ']'
 
-class_id:
-    CLASS ID
-  | FINAL CLASS ID
-  | ABSTRACT CLASS ID
-  | SEALED CLASS ID
-  | SEALED ABSTRACT CLASS ID
-;
+func_type:
+    '(' ')' R_ARROW type
+  | '(' type_list ')' R_ARROW type
 
-trait_list:
-    ID
-  | trait_list WITH ID
-;
+type_list:
+    type
+  | type_list ',' type
 
-class_def:
-    class_id class_params_opt class_parent_opt class_body_opt
-;
-
-class_params_opt:
+type_e:
     /* empty */
-  | LPAR class_field_list_e RPAR
-;
+  | '[' type ']'
 
-class_parent_opt:
-    /* empty */
-  | EXTENDS parent_ref
-;
+read_type:
+    READINT
+  | READCHAR
+  | READLINE
 
-class_body_opt:
-    /* empty */
-  | CURV_LPAR prop_def_list_e CURV_RPAR
-;
-
-parent_ref:
-    ID parent_args_opt parent_with_opt
-;
-
-parent_args_opt:
-    /* empty */
-  | LPAR expr_list_e RPAR
-;
-
-parent_with_opt:
-    /* empty */
-  | WITH trait_list
-;
-
-trait_def:
-    opt_sealed TRAIT ID trait_parent_opt trait_body_opt
-;
-
-opt_sealed:
-    /* empty */
-  | SEALED
-;
-
-trait_parent_opt:
-    /* empty */
-  | EXTENDS parent_ref
-;
-
-trait_body_opt:
-    /* empty */
-  | CURV_LPAR prop_def_list_e CURV_RPAR
-;
-
-aux_constructor_def:
-    DEF THIS LPAR param_list_e RPAR ASSIGN THIS LPAR expr_list_e RPAR
-;
-
-class_field_list_e:
-    /* empty */
-  | class_field_list
-;
-
-class_field_list:
-    class_field
-  | class_field_list COMMA class_field
-;
-
-class_field:
-    ID COLON type
-  | VAL ID COLON type
-;
-
-/* пропсы */
-
-prop_def_list_e:
-    /* empty */
-  | prop_def_list
-;
-
-prop_def_list:
-    member_def
-  | prop_def_list SEPARATOR member_def
-;
-
-member_def:
-    THIS COLON ID RARROW def
-  | member_modifiers def
-;
-
-member_modifiers:
-    /* empty */
-  | PRIVATE
-  | PROTECTED
-  | PROTECTED SQ_LPAR PACKAGE SQ_RPAR
-  | PRIVATE SQ_LPAR THIS SQ_RPAR
-  | PRIVATE SQ_LPAR PACKAGE SQ_RPAR
-  | OVERRIDE
-  | ABSTRACT PRIVATE
-  | ABSTRACT PROTECTED
-  | ABSTRACT PROTECTED SQ_LPAR PACKAGE SQ_RPAR
-  | ABSTRACT PRIVATE SQ_LPAR THIS SQ_RPAR
-  | ABSTRACT PRIVATE SQ_LPAR PACKAGE SQ_RPAR
-  | ABSTRACT OVERRIDE
-;
-
-/* перечисления */
-
-enum_def:
-    OBJECT ID EXTENDS ENUMERATION CURV_LPAR expr_list_e CURV_RPAR
-;
-
-/* выражения */
+/* Всё остальное - это выражения */
 
 expr:
-    assign_expr
-;
-
-assign_expr:
-    or_expr
-  | or_expr ASSIGN         assign_expr
-  | or_expr PLUS_ASSIGN    assign_expr
-  | or_expr MINUS_ASSIGN   assign_expr
-  | or_expr STAR_ASSIGN    assign_expr
-  | or_expr SLASH_ASSIGN   assign_expr
-  | or_expr PERCENT_ASSIGN assign_expr
-;
-
-or_expr:
-    and_expr
-  | or_expr OR and_expr
-;
-
-and_expr:
-    bit_expr
-  | and_expr AND bit_expr
-;
-
-bit_expr:
-    eq_expr
-  | bit_expr BYTE_OR  eq_expr
-  | bit_expr BYTE_XOR eq_expr
-  | bit_expr BYTE_AND eq_expr
-;
-
-eq_expr:
-    rel_expr
-  | eq_expr EQ  rel_expr
-  | eq_expr NEQ rel_expr
-;
-
-rel_expr:
-    range_expr
-  | rel_expr LESS_EQ     range_expr
-  | rel_expr GREATER_EQ  range_expr
-  | rel_expr LESS_NEQ    range_expr
-  | rel_expr GREATER_NEQ range_expr
-;
-
-range_expr:
-    cons_expr
-  | cons_expr TO range_expr
-;
-
-cons_expr:
-    add_expr
-  | add_expr CONS cons_expr
-;
-
-add_expr:
-    mul_expr
-  | add_expr PLUS  mul_expr
-  | add_expr MINUS mul_expr
-;
-
-mul_expr:
-    unary_expr
-  | mul_expr STAR    unary_expr
-  | mul_expr SLASH   unary_expr
-  | mul_expr PERCENT unary_expr
-;
-
-unary_expr:
-    postfix_expr
-  | PLUS  unary_expr %prec UPLUS
-  | MINUS unary_expr %prec UMINUS
-  | EXCL  unary_expr %prec UEXCL
-  | TILDA unary_expr %prec UTILDA
-;
-
-postfix_expr:
-    primary_expr
-  | postfix_expr LPAR expr_list_e RPAR          
-  | postfix_expr SQ_LPAR type_list_e SQ_RPAR    
-  | postfix_expr DOT method_suffix              
-  | SUPER DOT method_suffix
-;
-
-method_suffix:
-    method_name
-  | method_name LPAR expr_list_e RPAR
-  | method_name SQ_LPAR type_list_e SQ_RPAR
-  | method_name SQ_LPAR type_list_e SQ_RPAR LPAR expr_list_e RPAR
-;
-
-method_name:
     ID
-  | APPLY 
-  | UPDATE 
-  | HEAD 
-  | LAST 
-  | TOLIST 
-  | TOARRAY 
-  | EMPTY 
-  | CONCAT
-  | RANGE 
-  | FILL 
-  | TABULATE 
-  | ITERATE 
-  | FROM
-;
-
-primary_expr:
-    LITINT
+  | IMPORT ID '.' '_'
+  | SUPER
+  | '(' expr ')' R_ARROW expr
+  | '_'
+  | LITINT
   | LITCHAR
   | LITSTR
-  | ID
-  | UNDERSCORE
-  | TARRAY
-  | TLIST
-  | LPAR expr_list_e RPAR
-  | block_expr
+  | LITBOOL
+  | LITDOUBLE
+  | '(' expr ')'
+  | '{' program '}'
+  | expr '+' expr
+  | expr '-' expr
+  | expr '*' expr
+  | expr '/' expr
+  | expr '%' expr
+  | '+' expr %prec UPLUS
+  | '-' expr %prec UMINUS
+  | expr EQ expr
+  | expr NEQ expr
+  | expr '<' expr
+  | expr '>' expr
+  | expr LESS_EQ expr
+  | expr GREATER_EQ expr
+  | expr '=' expr
+  | expr AND expr
+  | expr '&' expr
+  | expr OR expr
+  | expr '|' expr
+  | expr '^' expr
+  | '!' expr %prec UEXCL
+  | '~' expr %prec UTILDA
+  | expr PLUS_ASSIGN expr
+  | expr MINUS_ASSIGN expr
+  | expr STAR_ASSIGN expr
+  | expr SLASH_ASSIGN expr
+  | expr PERCENT_ASSIGN expr
+  | expr AND_ASSIGN
+  | expr OR_ASSIGN
+  | var_type '(' expr_list ')'
+  | NEW var_type '(' expr ')' 
+  | NEW ID '(' expr_list ')'
+  | expr '.' array_postfix
+  | expr '(' expr_list_e ')'
   | if_expr
-  | match_expr
-  | SOME LPAR expr RPAR
-  | NONE
   | while_expr
   | do_while_expr
-  | for_expr
-  | YIELD LPAR expr_list_e RPAR
-  | try_catch_expr
-  | THROW NEW EXCEPTION LPAR RPAR
-  | THROW NEW EXCEPTION LPAR expr RPAR
-  | TYPE ID ASSIGN VALUE
-  | ID DOT VALUE
-  | IMPORT ID DOT UNDERSCORE
-  | VAL id_list
-  | VAR id_list
-  | NEW type LPAR expr_list_e RPAR
-  | iterable_once LPAR expr_list_e RPAR
-  | ID RARROW expr
-  | UNDERSCORE RARROW expr
-  | NIL
-  | LIST LPAR expr_list RPAR
-  | CONS LPAR expr COMMA cons_expr RPAR
-  | NEW CONS LPAR expr COMMA cons_expr RPAR
-;
+  | for_expr %prec FOR_EXPR
+  /* функции для печати вшиты в код, но должны подхватываться верхними правилами. 
+  мы смотрим, что это такое, на уровне семантики */
+  | SCALA '.' IO '.' STDIN '.' read_type '(' ')'
+  | PRINT '(' expr ')'
+  | PRINTLN '(' expr ')'
+  | PRINTF '(' expr_list ')'
+  | expr '.' ID
 
-iterable_once:
-    LIST
-  | VECTOR
-  | SEQ
-  | SET
-  | MAP
-  | RANGE
-  | ARRAY
-;
+/* возможно, нельзя без else'а присваивать значение переменной */
+if_expr:
+    IF '(' expr ')' expr %prec IF_EXPR
+  | IF '(' expr ')' expr ELSE expr %prec IF_EXPR
+
+while_expr:
+    WHILE '(' expr ')' expr %prec WHILE_EXPR
+
+do_while_expr:
+    DO expr WHILE '(' expr ')' %prec DO_WHILE_EXPR
+
+for_expr:
+    FOR '(' generator_list ')' expr
+  | FOR '{' generator_list '}' YIELD expr
+  | expr '.' for_expr_postfix
+
+generator_list:
+    ID L_ARROW expr range_e
+  | generator_list ';' ID L_ARROW expr range_e
+  | generator_list ';' IF expr
+  | generator_list ';' expr
+
+range_e:
+    /* empty */
+  | TO expr
+  | UNITL expr
+  | TO expr BY expr
+  | UNITL expr BY expr
 
 expr_list:
     expr
-  | expr_list COMMA expr
-;
+  | expr_list ',' expr %prec EXPR_LIST
 
 expr_list_e:
     /* empty */
   | expr_list
-;
 
-block_expr:
-    CURV_LPAR stmt_list_e CURV_RPAR
-;
+/* тоже вшиты, но должны подхватываться правилами для expr */
+array_postfix:
+    EMPTY type_e
+  | APPLY '(' expr_list_e ')'
+  | FILL type_e '(' expr ')' '(' expr ')'
+  | TABULATE type_e '(' expr ')' '(' ID R_ARROW expr ')'
+  | ITERATE type_e '(' expr ',' expr ')' '(' ID R_ARROW expr ')'
+  | RANGE '(' expr ',' expr ')'
+  | RANGE '(' expr ',' expr ',' expr ')'
+  | CONCAT '(' expr_list_e ')'
+  | COPY '(' expr ',' expr ',' expr ',' expr ',' expr ')'
+  | COPY_OF '(' expr ',' expr ')'
+  | FROM type_e '(' expr ')'
+  | HEAD
+  | HEAD_OPTION
+  | LAST
+  | LAST_OPTION
+  | LIFT '(' expr ')'
+  | APPLY_OR_ELSE '(' expr ',' expr ')'
+  | UPDATE '(' expr ',' expr ')'
+  | TO_ARRAY
 
-/* развилки */
+/* и это тоже на семантике */
+mk_string_postfix:
+    MK_STRING '(' ')'
+  | MK_STRING '(' expr ')'
+  | MK_STRING '(' expr ',' expr ',' expr ')'
 
-if_expr:
-    IF LPAR expr RPAR expr
-  | IF LPAR expr RPAR expr ELSE expr
-;
-
-match_expr:
-    expr MATCH CURV_LPAR case_list CURV_RPAR
-  | expr MATCH CURV_LPAR except_case_list CURV_RPAR
-;
+/* тоже на семантике */
+for_expr_postfix:
+    FOREACH '(' expr ')'
+  | TAPEACH '(' expr ')'
+  | FILTER '(' expr ')'
+  | FILTER_NOT '(' expr ')'
+  | PARTITION '(' expr ')'
+  | PARTITION_MAP '(' expr ')'
+  | DISTINCT
+  | DISTINCT_BY '(' expr ')'
+  | COLLECT '{' case_list '}'
+  | COLLECT_FIRST '{' case_list '}'
+  | DROP '(' expr ')'
+  | DROP_RIGHT '(' expr ')'
+  | DROP_WHILE '(' expr ')'
+  | TAKE '(' expr ')'
+  | TAKE_RIGHT '(' expr ')'
+  | TAKE_WHILE '(' expr ')'
+  | SPAN '(' expr ')'
+  | SLICE '(' expr ',' expr ')'
+  | SPLIT_AT '(' expr ')'
+  | FIND '(' expr ')'
+  | FIND_LAST '(' expr ')'
+  | INDEX_WHERE '(' expr ')'
+  | LAST_INDEX_WHERE '(' expr ')'
+  | INDEX_OF '(' expr ')'
+  | LAST_INDEX_OF '(' expr ')'
+  | INDEX_OF_SLICE '(' expr ')'
+  | LAST_INDEX_OF_SLICE '(' expr ')'
+  | CONTAINS '(' expr ')'
+  | CONTAINS_SLICE '(' expr ')'
+  | EXISTS '(' expr ')'
+  | FORALL '(' expr ')'
+  | COUNT '(' expr ')'
+  | FOLD '(' expr ')'
+  | FOLD_LEFT '(' expr ')'
+  | FOLD_RIGHT '(' expr ')'
+  | REDUCE '(' expr ')'
+  | REDUCE_LEFT '(' expr ')'
+  | REDUCE_RIGHT '(' expr ')'
+  | REDUCE_OPTION '(' expr ')'
+  | REDUCE_LEFT_OPTION '(' expr ')'
+  | REDUCE_RIGHT_OPTION '(' expr ')'
+  | SUM
+  | MIN
+  | MAX
+  | MIN_BY '(' expr ')'
+  | MAX_BY '(' expr ')'
+  | MIN_OPTION
+  | MAX_OPTION
+  | MIN_BY_OPTION '(' expr ')'
+  | MAX_BY_OPTION '(' expr ')'
+  | GROUP_BY '(' expr ')'
+  | GROUP_MAP '(' expr ')' '(' expr ')'
+  | GROUP_MAP_REDUCE '(' expr ')' '(' expr ')' '(' expr ')'
+  | GROUPED '(' expr ')'
+  | SLIDING '(' expr ')'
+  | ZIP '(' expr ')'
+  | ZIP_WITH_INDEX
+  | LAZY_ZIP '(' expr ')'
+  | MAP '(' expr ')'
+  | FLAT_MAP '(' expr ')'
+  | SCAN '(' expr ')' '(' expr ')'
+  | SCAN_LEFT '(' expr ')' '(' expr ')'
+  | SCAN_RIGHT '(' expr ')' '(' expr ')'
+  | VIEW
+  /* обходят массив, но не являются заменой for */
+  | SIZE
+  | IS_EMPTY
+  | NON_EMPTY
+  | SIZE_COMPARE
+  | KNOWN_SIZE
+  | TAIL
+  | INIT
+  | IS_DEFINED_AT '(' expr ')'
+  | INDICES
+  | LENGTH
+  | LENGTH_COMPARE '(' expr ')'
+  | REVERSE
+  | REVERSE_ITERATOR
+  | SORTED
+  | SORT_BY '(' expr ')'
+  | SORT_WITH '(' expr ')'
+  | SORT_IN_PLACE
+  | mk_string_postfix %prec MAKE_STRING
+  | ADD_STRING '(' expr ')'
+  | ADD_STRING '(' expr ',' expr ')'
+  | ADD_STRING '(' expr ',' expr ',' expr ',' expr ')'
+  | SAME_ELEMENTS '(' expr ')'
+  | CORRESPONDS '(' expr ')' '(' expr ')'
+  | DIFF '(' expr ')'
+  | INTERSECT '(' expr ')'
+  | UNION '(' expr ')'
+  | PATCH '(' expr ',' expr ',' expr ')'
+  | UPDATED '(' expr ',' expr ')'
+  | KEYS
+  | VALUES
+  | KEY_SET
+  | GET '(' expr ')'
+  | GET_OR_ELSE '(' expr ',' expr ')'
+  | HAS_NEXT
+  | NEXT '(' ')'
+  | NEXT_OPTION '(' ')'
+  | BUFFERED
+  | DUPLICATE
+  | CAPITALIZE
+  | TO_UPPER_CASE
+  | TO_LOWER_CASE
+  | STRIP_LINE_END
+  | LINES_ITERATOR
+  | LINES_WITH_SEPARATORS
 
 case_list:
-    wildcard_case
+    case
   | case_list case
-;
-
-wildcard_case:
-    CASE UNDERSCORE RARROW expr
-;
 
 case:
-    CASE expr RARROW expr
-  | CASE expr IF expr RARROW expr
-  | CASE ID COLON type RARROW expr
-  | CASE ID COLON type IF expr RARROW expr
-  | CASE ID AT_SIGN expr RARROW expr
-  | CASE ID AT_SIGN expr IF expr RARROW expr
-  | CASE ID COLON type AT_SIGN expr RARROW expr
-  | CASE ID COLON type AT_SIGN expr IF expr RARROW expr
-;
+    CASE expr R_ARROW expr
+  | CASE expr IF expr R_ARROW expr
 
-/* циклы */
 
-while_expr:
-    WHILE LPAR expr RPAR expr
-;
-
-do_while_expr:
-    DO expr WHILE LPAR expr RPAR
-;
-
-for_expr:
-    FOR LPAR generator RPAR expr
-  | FOR LPAR generator guard RPAR expr
-  | FOR CURV_LPAR generator_list CURV_RPAR expr
-  | FOR LPAR ID LARROW expr TO expr BY expr RPAR expr
-;
-
-generator_list:
-    generator
-  | generator_list generator
-  | generator_list guard
-;
-
-generator:
-    ID LARROW expr
-  | ID LARROW expr TO expr
-  | ID LARROW expr UNTIL expr
-;
-
-guard:
-    IF expr
-;
-
-/* консоль */
-
-output:
-    PRINT LPAR expr RPAR
-  | PRINTLN LPAR expr RPAR
-  | PRINTF LPAR LITSTR COMMA args_e RPAR
-  | CONSOLE DOT ERR DOT PRINTLN LPAR expr RPAR
-;
-
-input:
-    READINT LPAR RPAR
-  | READCHAR LPAR RPAR
-  | READLINE LPAR RPAR
-;
-
-args_e:
-    /* empty */
-  | args
-;
-
-args:
-    expr
-  | args COMMA expr
-;
-
-/* исключения */
-
-try_catch_expr:
-    TRY expr CATCH CURV_LPAR err_case_list CURV_RPAR FINALLY expr
-  | TRY expr CATCH CURV_LPAR err_case_list wildcard_err_case CURV_RPAR FINALLY expr
-;
-
-err_case_list:
-    err_case
-  | err_case_list err_case
-;
-
-err_case:
-    CASE E COLON EXCEPTION RARROW PRINTLN LPAR expr RPAR
-;
-
-wildcard_err_case:
-    CASE UNDERSCORE COLON EXCEPTION RARROW PRINTLN LPAR expr RPAR
-;
-
-except_case_list:
-    except_case
-  | except_case_list SEPARATOR except_case
-;
-
-except_case:
-    CASE SUCCESS LPAR V RPAR RARROW expr
-  | CASE FAILURE LPAR E RPAR RARROW expr
-  | CASE NONFATAL LPAR E RPAR RARROW expr
-;
 
 %%
+
+/* Эпилог (Epilogue): дополнительный C-код */
