@@ -19,3 +19,5 @@ C:\msys64\mingw64\include\FlexLexer.h
 
 Запуск лексера:
 .\lexer.exe test.scala
+
+Проверить точки с запятой в конце при return

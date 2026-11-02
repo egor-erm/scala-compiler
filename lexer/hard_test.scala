@@ -4,6 +4,13 @@ object Main {
       val b_-// разность
       = 3
 
+      var aaa = 3
+
+      aaa += 
+      5
+
+      println("test " + aaa)
+
       println(a_+/* комментарий */ + b_-)  // 13
 
       // однострочный комментарий
@@ -15,8 +22,6 @@ object Main {
       val Int = 0_123
       
       val s = "hello world"
-
-
 
       val
       a = 1
@@ -65,7 +70,6 @@ object Main {
 
       // ---------- for ----------
       for (n <- 1 to 3) {
-         println("for: n = " + n)
-      }
-      }
+         println("for: n = " + n)}
+   }
 }

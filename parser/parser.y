@@ -275,13 +275,13 @@ expr:
   | RETURN %prec RETURN_EMPTY
   | RETURN expr
   | simple '=' expr
-  | simple PLUS_ASSIGN expr
-  | simple MINUS_ASSIGN expr
-  | simple STAR_ASSIGN expr
-  | simple SLASH_ASSIGN expr
-  | simple PERCENT_ASSIGN expr
-  | simple AND_ASSIGN expr
-  | simple OR_ASSIGN expr
+  | simple PLUS_ASSIGN nl_e expr
+  | simple MINUS_ASSIGN nl_e expr
+  | simple STAR_ASSIGN nl_e expr
+  | simple SLASH_ASSIGN nl_e expr
+  | simple PERCENT_ASSIGN nl_e expr
+  | simple AND_ASSIGN nl_e expr
+  | simple OR_ASSIGN nl_e expr
   | infix
   ;
 

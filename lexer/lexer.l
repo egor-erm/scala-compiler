@@ -219,7 +219,7 @@ using       { printKeyword(YYText()); }
     }
 }
 
-";"         { printSeparator(YYText()); }
+";"      { printSeparator(YYText()); }
 
 <*>.     { cerr << "Unexpected char \'" << YYText()[0] << "\'" << endl; BEGIN(INITIAL);}
 
