@@ -5,7 +5,8 @@ keyword: val
 id: a
 operator: =
 int literal: 1
-newline: nlnl
+newline: nl
+newline: nl
 keyword: val
 id: b
 operator: =
@@ -13,7 +14,8 @@ int literal: 2
 operator: +
 newline: nl
 int literal: 3
-newline: nlnl
+newline: nl
+newline: nl
 keyword: val
 id: c
 operator: =
@@ -39,7 +41,8 @@ operator: =
 id: a
 separator: .
 id: toString
-newline: nlnl
+newline: nl
+newline: nl
 keyword: val
 id: f
 operator: =
@@ -52,7 +55,8 @@ separator: )
 int literal: 1
 keyword: else
 int literal: 2
-newline: nlnl
+newline: nl
+newline: nl
 keyword: def
 id: g
 separator: (

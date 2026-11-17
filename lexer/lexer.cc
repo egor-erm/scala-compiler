@@ -707,7 +707,7 @@ static const flex_int16_t yy_chk[859] =
 
     void onGap(const char* text);                     // пробелы и комментарии между токенами
     void onToken(TokenClass cls, const string& text); // учёт токена для вставки nl
-    void printNewline(string kind);
+    void printNewline();
 
     size_t commentStart(const string& text);          // начало "//" или "/*" внутри токена
     bool isOperator(const string& text);              // оператор, а не символьный идентификатор
@@ -2412,9 +2412,7 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-bool gapHasNewline = false;   // между предыдущим и текущим токеном был перевод строки
-bool gapHasBlankLine = false; // между токенами несколько перводом строк
-bool gapAfterLF = false;      // после последнего \n встречались только пробельные символы
+int gapNewlineCount = 0;        // фактическое число переводов строк между токенами
 bool lastCanEnd = false;      // предыдущий токен может завершать оператор
 
 // Стек областей: ожидаемые закрывающие токены ")", "]", "}", "=>". */
@@ -2511,11 +2509,7 @@ void onGap(const char* text) {
     for (const char* p = text; *p; p++) {
         unsigned char c = (unsigned char)*p;
         if (c == '\n' || c == '\f') {
-            if (gapAfterLF) gapHasBlankLine = true;
-            gapAfterLF = true;
-            gapHasNewline = true;
-        } else if (c > ' ') {
-            gapAfterLF = false;
+            gapNewlineCount++;
         }
     }
 }
@@ -2526,16 +2520,18 @@ void onToken(TokenClass cls, const string& text) {
         // у case class / case object нет "=>", область для них не открывается
         if (!(cls == TC_KEYWORD && isOneOf(text, {"class", "object"}))) regions.push_back("=>");
     }
-    if (gapHasNewline && lastCanEnd && canBeginStatement(cls, text) && newlinesEnabled()) {
-        printNewline(gapHasBlankLine ? "nlnl" : "nl");
+    if (gapNewlineCount > 0 && lastCanEnd && canBeginStatement(cls, text) && newlinesEnabled()) {
+        for (int i = 0; i < gapNewlineCount; i++) {
+            printNewline();
+        }
     }
-    gapHasNewline = gapHasBlankLine = gapAfterLF = false;
+    gapNewlineCount = 0;
     updateRegions(cls, text);
     lastCanEnd = canEndStatement(cls, text);
 }
 
-void printNewline(string kind) {
-    cout << "newline: " << kind << endl;
+void printNewline() {
+    cout << "newline: nl" << endl;
 }
 
 void printLiteral(string type, string literal) {

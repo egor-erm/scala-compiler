@@ -41,10 +41,10 @@ object Main {
       println("Hello, Scala! " + a + " " + ab + " " + ac + " " + ad)
       println("Hello, Scala! " + x + " " + Int + " " + +)
 
-      demo();
+      println(demo());
    }
 
-   def demo(): Unit = {
+   def demo(): Int = {
       // ---------- if ----------
       val x = 10
       val y = 45
@@ -71,5 +71,15 @@ object Main {
       // ---------- for ----------
       for (n <- 1 to 3) {
          println("for: n = " + n)}
+
+      return x
+   }
+}
+
+class Test 
+
+{
+   def hi(): Int = {
+      return 5
    }
 }

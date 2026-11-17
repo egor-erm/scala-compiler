@@ -18,7 +18,7 @@
 %token DEF ABSTRACT SEALED FINAL OVERRIDE EXTENDS CLASS SUPER
 %token PRIVATE PROTECTED THIS
 %token IMPORT TYPE OBJECT
-%token NL NLNL
+%token NL
 %token UNSUPPORTED "unsupported token"
 
 /* Приоритеты как в Scala: определяются первым символом оператора */
@@ -41,9 +41,9 @@
 
 %start program
 
-/* Ожидаемые конфликты, сдвиг в них верен: аргументы new A (...) и catch/finally у вложенного try */
+/* Ожидаемые конфликты, сдвиг в них верен: catch/finally у вложенного try. */
 
-%expect 3
+%expect 2
 
 %%
 
@@ -75,12 +75,11 @@ path:
   | path '.' ID
   ;
 
-/* Разделители: nl и nlnl работают как ';' */
+/* Перевод строки работает как ';'. Несколько NL разбираются через semis. */
 
 semi:
     ';'
   | NL
-  | NLNL
   ;
 
 semis:
@@ -93,16 +92,10 @@ semis_e:
   | semis
   ;
 
-semi_e:
-    /* empty */
-  | semi
-  ;
-
 /* Любое число переводов строк (после условий и генераторов) */
 nls:
     /* empty */
   | nls NL
-  | nls NLNL
   ;
 
 /* Перевод строки после инфиксного оператора */
@@ -122,7 +115,6 @@ stmt:
 def:
     func_def
   | var_def
-  | TYPE ID '=' type
   ;
 
 /* Не все не для всего. Надо разбить под дефам и выписать варианты. Не забыть про повторения. */
@@ -141,13 +133,19 @@ def_prefix_list:
   ;
 
 class_def:
-    def_prefix_list CLASS ID field_list_e extends_e class_body_e
-  | def_prefix_list OBJECT ID extends_e class_body_e
+    def_prefix_list CLASS ID class_tail
+  | def_prefix_list CLASS ID class_fields class_tail
+  | def_prefix_list OBJECT ID class_tail
   ;
 
-extends_e:
-    /* empty */
-  | EXTENDS ID args_e
+class_fields:
+    nls '(' ')'
+  | nls '(' field_list ')'
+  ;
+
+class_tail:
+    class_body
+  | EXTENDS ID args_e class_body
   ;
 
 args_e:
@@ -160,13 +158,8 @@ args:
   | '(' expr_list ')'
   ;
 
-class_body_e:
-    /* empty */
-  | class_body
-  ;
-
 class_body:
-    '{' stmt_list_e '}'
+    nls '{' stmt_list_e '}'
   ;
 
 stmt_list_e:
@@ -182,12 +175,6 @@ stmt_list:
 id_list:
     ID
   | id_list ',' ID
-  ;
-
-field_list_e:
-    /* empty */
-  | '(' ')'
-  | '(' field_list ')'
   ;
 
 field_list:
@@ -218,7 +205,7 @@ var_def:
 
 params_e:
     /* empty */
-  | '(' param_list_e ')'
+  | nl_e '(' param_list_e ')'
   ;
 
 param_list_e:
@@ -296,7 +283,7 @@ while_expr:
   ;
 
 do_while_expr:
-    DO expr semi_e WHILE '(' expr ')'
+    DO expr semis_e WHILE '(' expr ')'
   ;
 
 for_expr:
@@ -379,7 +366,7 @@ simple:
   | simple args
   | '(' expr ')'
   | '{' block_stats '}'
-  | NEW ID args_e
+  | NEW ID args
   | NEW TARRAY '[' type ']' '(' expr ')'
   | TARRAY args
   | TARRAY '[' type ']' args

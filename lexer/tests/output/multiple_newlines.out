@@ -1,0 +1,16 @@
+keyword: object
+id: Main
+separator: {
+keyword: val
+id: a
+operator: =
+int literal: 1
+newline: nl
+newline: nl
+newline: nl
+newline: nl
+keyword: val
+id: b
+operator: =
+int literal: 2
+separator: }
