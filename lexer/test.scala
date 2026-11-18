@@ -6,6 +6,18 @@ object Main {
        комментарий 
     */
 
+    try {
+      var adf = 12
+      adf
+    } catch {
+      case _: ArithmeticException => 0
+      case 
+      e 
+      => 
+      15
+      
+    }
+
     val X: Int = 0_2
     val Int = 0_123
     val s = "test \u0041 "

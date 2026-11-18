@@ -294,8 +294,7 @@ for_expr:
 generator_list:
     generator
   | generator_list semis generator
-  | generator_list semis IF expr
-  | generator_list IF expr
+  | generator_list semis_e IF expr
   ;
 
 generator:
@@ -313,7 +312,7 @@ case_list:
   ;
 
 case:
-    CASE ID ':' type R_ARROW block_stats
+    CASE ID type_e R_ARROW block_stats
   ;
 
 finally_e:
