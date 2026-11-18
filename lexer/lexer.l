@@ -10,24 +10,32 @@
     #include <fstream>
     #include <string>
     #include <cstdlib>
+    #include <cstring>
+    #include <deque>
     #include <vector>
+    #include "parser.tab.h"
+    #include "lexer_driver.h"
+
+#ifdef SCALA_LEXER_STANDALONE
+    YYSTYPE yylval;
+#endif
     using namespace std;
 
     enum TokenClass { TC_LITERAL, TC_IDENT, TC_KEYWORD, TC_OPERATOR, TC_SEPARATOR };
 
     void onGap(const char* text);                     // пробелы и комментарии между токенами
-    void onToken(TokenClass cls, const string& text); // учёт токена для вставки nl
+    int onToken(TokenClass cls, const string& text, int tokenCode, bool hasValue);
     void printNewline();
 
     size_t commentStart(const string& text);          // начало "//" или "/*" внутри токена
     bool isOperator(const string& text);              // оператор, а не символьный идентификатор
 
-    void printLiteral(string type, string literal);
-    void printType(string type);
-    void printKeyword(string keyword);
-    void printOperator(string op);
-    void printIdentificator(string id);
-    void printSeparator(string separator);
+    int printLiteral(string type, string literal);
+    int printType(string type);
+    int printKeyword(string keyword);
+    int printOperator(string op);
+    int printIdentificator(string id);
+    int printSeparator(string separator);
 
     string stripUnderscores(string s);
     string stripSuffix(string s, string chars);
@@ -92,80 +100,80 @@ CHAR_LITERAL '{CHAR_CONTENT}'
 <ML_COMMENT><<EOF>>  { cerr << "ERROR: unterminated multi-line comment" << endl;
                        BEGIN(INITIAL); }
 
-Int     { printType(YYText()); }
-Double  { printType(YYText()); }
-String  { printType(YYText()); }
-Char    { printType(YYText()); }
-Array   { printType(YYText()); }
-Unit    { printType(YYText()); } /* аналог void */
+Int     { return printType(YYText()); }
+Double  { return printType(YYText()); }
+String  { return printType(YYText()); }
+Char    { return printType(YYText()); }
+Array   { return printType(YYText()); }
+Unit    { return printType(YYText()); } /* аналог void */
 
-abstract    { printKeyword(YYText()); } /* Regular keywords */
-case        { printKeyword(YYText()); }
-catch       { printKeyword(YYText()); }
-class       { printKeyword(YYText()); }
-def         { printKeyword(YYText()); }
-do          { printKeyword(YYText()); }
-else        { printKeyword(YYText()); }
-extends     { printKeyword(YYText()); }
-false       { printKeyword(YYText()); }
-final       { printKeyword(YYText()); }
-finally     { printKeyword(YYText()); }
-for         { printKeyword(YYText()); }
-if          { printKeyword(YYText()); }
-implicit    { printKeyword(YYText()); }
-import      { printKeyword(YYText()); }
-lazy        { printKeyword(YYText()); }
-macro       { printKeyword(YYText()); }
-match       { printKeyword(YYText()); }
-new         { printKeyword(YYText()); }
-null        { printKeyword(YYText()); }
-object      { printKeyword(YYText()); }
-override    { printKeyword(YYText()); }
-package     { printKeyword(YYText()); }
-private     { printKeyword(YYText()); }
-protected   { printKeyword(YYText()); }
-return      { printKeyword(YYText()); }
-sealed      { printKeyword(YYText()); }
-super       { printKeyword(YYText()); }
-this        { printKeyword(YYText()); }
-throw       { printKeyword(YYText()); }
-trait       { printKeyword(YYText()); }
-true        { printKeyword(YYText()); }
-try         { printKeyword(YYText()); }
-type        { printKeyword(YYText()); }
-val         { printKeyword(YYText()); }
-var         { printKeyword(YYText()); }
-while       { printKeyword(YYText()); }
-with        { printKeyword(YYText()); }
-yield       { printKeyword(YYText()); }
+abstract    { return printKeyword(YYText()); } /* Regular keywords */
+case        { return printKeyword(YYText()); }
+catch       { return printKeyword(YYText()); }
+class       { return printKeyword(YYText()); }
+def         { return printKeyword(YYText()); }
+do          { return printKeyword(YYText()); }
+else        { return printKeyword(YYText()); }
+extends     { return printKeyword(YYText()); }
+false       { return printKeyword(YYText()); }
+final       { return printKeyword(YYText()); }
+finally     { return printKeyword(YYText()); }
+for         { return printKeyword(YYText()); }
+if          { return printKeyword(YYText()); }
+implicit    { return printKeyword(YYText()); }
+import      { return printKeyword(YYText()); }
+lazy        { return printKeyword(YYText()); }
+macro       { return printKeyword(YYText()); }
+match       { return printKeyword(YYText()); }
+new         { return printKeyword(YYText()); }
+null        { return printKeyword(YYText()); }
+object      { return printKeyword(YYText()); }
+override    { return printKeyword(YYText()); }
+package     { return printKeyword(YYText()); }
+private     { return printKeyword(YYText()); }
+protected   { return printKeyword(YYText()); }
+return      { return printKeyword(YYText()); }
+sealed      { return printKeyword(YYText()); }
+super       { return printKeyword(YYText()); }
+this        { return printKeyword(YYText()); }
+throw       { return printKeyword(YYText()); }
+trait       { return printKeyword(YYText()); }
+true        { return printKeyword(YYText()); }
+try         { return printKeyword(YYText()); }
+type        { return printKeyword(YYText()); }
+val         { return printKeyword(YYText()); }
+var         { return printKeyword(YYText()); }
+while       { return printKeyword(YYText()); }
+with        { return printKeyword(YYText()); }
+yield       { return printKeyword(YYText()); }
 
-as          { printKeyword(YYText()); } /* Soft keywords */
-derives     { printKeyword(YYText()); }
-end         { printKeyword(YYText()); }
-extension   { printKeyword(YYText()); }
-infix       { printKeyword(YYText()); }
-inline      { printKeyword(YYText()); }
-opaque      { printKeyword(YYText()); }
-open        { printKeyword(YYText()); }
-transparent { printKeyword(YYText()); }
-using       { printKeyword(YYText()); }
+as          { return printKeyword(YYText()); } /* Soft keywords */
+derives     { return printKeyword(YYText()); }
+end         { return printKeyword(YYText()); }
+extension   { return printKeyword(YYText()); }
+infix       { return printKeyword(YYText()); }
+inline      { return printKeyword(YYText()); }
+opaque      { return printKeyword(YYText()); }
+open        { return printKeyword(YYText()); }
+transparent { return printKeyword(YYText()); }
+using       { return printKeyword(YYText()); }
 
-{FLOATING_POINT_LITERAL}    { printLiteral("double", normalizeDouble(YYText())); }
+{FLOATING_POINT_LITERAL}    { return printLiteral("double", normalizeDouble(YYText())); }
 
-{NUMBER}                    { printLiteral("int", normalizeInt(YYText())); }
-{BIN_LITERAL}               { printLiteral("int", normalizeBinInt(YYText())); }
-{HEX_LITERAL}               { printLiteral("int", normalizeHexInt(YYText())); }
+{NUMBER}                    { return printLiteral("int", normalizeInt(YYText())); }
+{BIN_LITERAL}               { return printLiteral("int", normalizeBinInt(YYText())); }
+{HEX_LITERAL}               { return printLiteral("int", normalizeHexInt(YYText())); }
 
-"("         { printSeparator(YYText()); } /* Разделители */
-")"         { printSeparator(YYText()); }
-"["         { printSeparator(YYText()); }
-"]"         { printSeparator(YYText()); }
-"{"         { printSeparator(YYText()); }
-"}"         { printSeparator(YYText()); }
-","         { printSeparator(YYText()); }
-"."         { printSeparator(YYText()); }
+"("         { return printSeparator(YYText()); } /* Разделители */
+")"         { return printSeparator(YYText()); }
+"["         { return printSeparator(YYText()); }
+"]"         { return printSeparator(YYText()); }
+"{"         { return printSeparator(YYText()); }
+"}"         { return printSeparator(YYText()); }
+","         { return printSeparator(YYText()); }
+"."         { return printSeparator(YYText()); }
 
-{CHAR_LITERAL}            { printLiteral("char", normalizeChar(YYText())); }
+{CHAR_LITERAL}            { return printLiteral("char", normalizeChar(YYText())); }
 
 \"                      { stringBuffer = ""; BEGIN(STRING); }
 <STRING>[^\\\"\n]+      { stringBuffer += YYText(); }
@@ -183,8 +191,8 @@ using       { printKeyword(YYText()); }
 
 <STRING>\\\n           {  }
 
-<STRING>\"           { printLiteral("string", stringBuffer);
-                       BEGIN(INITIAL); }
+<STRING>\"           { BEGIN(INITIAL);
+                       return printLiteral("string", stringBuffer); }
 
 <STRING>\n           { cerr << "ERROR: EOL in string" << endl;
                        BEGIN(INITIAL); }
@@ -197,7 +205,7 @@ using       { printKeyword(YYText()); }
         yyless(cut);
         text = text.substr(0, cut);
     }
-    printIdentificator(text);
+    return printIdentificator(text);
 }
 
 {OP} {
@@ -214,17 +222,63 @@ using       { printKeyword(YYText()); }
             yyless(cut);
             text = text.substr(0, cut);
         }
-        if (isOperator(text)) printOperator(text);
-        else printIdentificator(text);
+        if (isOperator(text)) return printOperator(text);
+        else return printIdentificator(text);
     }
 }
 
-";"      { printSeparator(YYText()); }
+";"      { return printSeparator(YYText()); }
 
 <*>.     { cerr << "Unexpected char \'" << YYText()[0] << "\'" << endl; BEGIN(INITIAL);}
 
 %%
 
+namespace {
+
+struct PendingToken {
+    int code;
+    char* value;
+};
+
+yyFlexLexer* activeLexer = nullptr;
+std::deque<PendingToken> tokenBuffer;
+bool parserMode = false;
+
+char* copyTokenValue(const string& text) {
+    char* result = static_cast<char*>(std::malloc(text.size() + 1));
+    if (result == nullptr) {
+        std::cerr << "Out of memory while copying token value" << std::endl;
+        std::exit(1);
+    }
+    std::memcpy(result, text.c_str(), text.size() + 1);
+    return result;
+}
+
+int popBufferedToken() {
+    PendingToken token = tokenBuffer.front();
+    tokenBuffer.pop_front();
+    yylval.text = token.value;
+    return token.code;
+}
+
+} // namespace
+
+void setScalaLexer(yyFlexLexer* lexer) {
+    activeLexer = lexer;
+}
+
+void setScalaLexerParserMode(bool enabled) {
+    parserMode = enabled;
+}
+
+int yylex() {
+    if (!tokenBuffer.empty()) {
+        return popBufferedToken();
+    }
+    return activeLexer == nullptr ? 0 : activeLexer->yylex();
+}
+
+#ifdef SCALA_LEXER_STANDALONE
 int main(int argc, char** argv) {
     if (argc < 2) {
         cerr << "Usage: " << argv[0] << " <file.scala>" << endl;
@@ -238,10 +292,13 @@ int main(int argc, char** argv) {
     }
 
     yyFlexLexer lexer(&in, &cout);
-    lexer.yylex();
+    setScalaLexer(&lexer);
+    setScalaLexerParserMode(false);
+    while (yylex() != 0) {}
 
     return 0;
 }
+#endif
 
 int gapNewlineCount = 0;        // фактическое число переводов строк между токенами
 bool lastCanEnd = false;      // предыдущий токен может завершать оператор
@@ -345,54 +402,143 @@ void onGap(const char* text) {
     }
 }
 
-void onToken(TokenClass cls, const string& text) {
+int onToken(TokenClass cls, const string& text, int tokenCode, bool hasValue) {
     if (pendingCase) {
         pendingCase = false;
         // у case class / case object нет "=>", область для них не открывается
         if (!(cls == TC_KEYWORD && isOneOf(text, {"class", "object"}))) regions.push_back("=>");
     }
-    if (gapNewlineCount > 0 && lastCanEnd && canBeginStatement(cls, text) && newlinesEnabled()) {
+
+    const bool insertNewlines = gapNewlineCount > 0 && lastCanEnd &&
+        canBeginStatement(cls, text) && newlinesEnabled();
+
+    char* value = hasValue ? copyTokenValue(text) : nullptr;
+    int result = tokenCode;
+
+    if (insertNewlines) {
         for (int i = 0; i < gapNewlineCount; i++) {
             printNewline();
+            tokenBuffer.push_back({NL, nullptr});
         }
+        tokenBuffer.push_back({tokenCode, value});
+        result = popBufferedToken();
+    } else {
+        yylval.text = value;
     }
+
     gapNewlineCount = 0;
     updateRegions(cls, text);
     lastCanEnd = canEndStatement(cls, text);
+    return result;
 }
 
 void printNewline() {
-    cout << "newline: nl" << endl;
+    if (!parserMode) {
+        cout << "newline: nl" << endl;
+    }
 }
 
-void printLiteral(string type, string literal) {
-    onToken(TC_LITERAL, literal);
-    cout << type << " literal: " << literal << endl;
+int printLiteral(string type, string literal) {
+    int code = UNSUPPORTED;
+    if (type == "int") code = LITINT;
+    else if (type == "double") code = LITDOUBLE;
+    else if (type == "char") code = LITCHAR;
+    else if (type == "string") code = LITSTR;
+
+    int result = onToken(TC_LITERAL, literal, code, true);
+    if (!parserMode) cout << type << " literal: " << literal << endl;
+    return result;
 }
 
-void printType(string type) {
-    onToken(TC_IDENT, type);
-    cout << "type: " << type << endl;
+int printType(string type) {
+    const bool isArray = type == "Array";
+    int result = onToken(TC_IDENT, type, isArray ? TARRAY : ID, !isArray);
+    if (!parserMode) cout << "type: " << type << endl;
+    return result;
 }
 
-void printKeyword(string keyword) {
-    onToken(TC_KEYWORD, keyword);
-    cout << "keyword: " << keyword << endl;
+int printKeyword(string keyword) {
+    struct KeywordToken { const char* word; int code; };
+    static const KeywordToken tokens[] = {
+        {"while", WHILE}, {"do", DO}, {"for", FOR},
+        {"val", VAL}, {"var", VAR}, {"new", NEW},
+        {"if", IF}, {"else", ELSE}, {"case", CASE},
+        {"try", TRY}, {"catch", CATCH}, {"finally", FINALLY},
+        {"throw", THROW}, {"return", RETURN}, {"def", DEF},
+        {"abstract", ABSTRACT}, {"sealed", SEALED}, {"final", FINAL},
+        {"override", OVERRIDE}, {"extends", EXTENDS}, {"class", CLASS},
+        {"super", SUPER}, {"private", PRIVATE}, {"protected", PROTECTED},
+        {"this", THIS}, {"import", IMPORT}, {"type", TYPE}, {"object", OBJECT}
+    };
+
+    int code = UNSUPPORTED;
+    for (const KeywordToken& token : tokens) {
+        if (keyword == token.word) {
+            code = token.code;
+            break;
+        }
+    }
+
+    TokenClass tokenClass = TC_KEYWORD;
+    bool hasValue = code == UNSUPPORTED;
+
+    if (keyword == "true" || keyword == "false") {
+        code = LITBOOL;
+        tokenClass = TC_LITERAL;
+        hasValue = true;
+    } else if (keyword == "null") {
+        code = KNULL;
+        tokenClass = TC_LITERAL;
+    } else if (isOneOf(keyword, {"as", "derives", "end", "extension", "infix", "inline",
+                                 "opaque", "open", "transparent", "using"})) {
+        code = ID;
+        tokenClass = TC_IDENT;
+        hasValue = true;
+    }
+
+    int result = onToken(tokenClass, keyword, code, hasValue);
+    if (!parserMode) cout << "keyword: " << keyword << endl;
+    return result;
 }
 
-void printOperator(string op) {
-    onToken(TC_OPERATOR, op);
-    cout << "operator: " << op << endl;
+int printOperator(string op) {
+    struct OperatorToken { const char* text; int code; };
+    static const OperatorToken tokens[] = {
+        {"=>", R_ARROW}, {"<-", L_ARROW},
+        {"==", EQ}, {"!=", NEQ}, {"<=", LESS_EQ}, {">=", GREATER_EQ},
+        {"<<", SHL}, {">>", SHR}, {"&&", AND}, {"||", OR},
+        {"+=", PLUS_ASSIGN}, {"-=", MINUS_ASSIGN}, {"*=", STAR_ASSIGN},
+        {"/=", SLASH_ASSIGN}, {"%=", PERCENT_ASSIGN},
+        {"&=", AND_ASSIGN}, {"|=", OR_ASSIGN},
+        {"+", '+'}, {"-", '-'}, {"*", '*'}, {"/", '/'}, {"%", '%'},
+        {">", '>'}, {"<", '<'}, {"!", '!'}, {"&", '&'}, {"^", '^'},
+        {"|", '|'}, {"~", '~'}, {"=", '='}, {":", ':'}
+    };
+
+    int code = UNSUPPORTED;
+    for (const OperatorToken& token : tokens) {
+        if (op == token.text) {
+            code = token.code;
+            break;
+        }
+    }
+
+    int result = onToken(TC_OPERATOR, op, code, code == UNSUPPORTED);
+    if (!parserMode) cout << "operator: " << op << endl;
+    return result;
 }
 
-void printIdentificator(string id) {
-    onToken(TC_IDENT, id);
-    cout << "id: " << id << endl;
+int printIdentificator(string id) {
+    int result = onToken(TC_IDENT, id, ID, true);
+    if (!parserMode) cout << "id: " << id << endl;
+    return result;
 }
 
-void printSeparator(string separator) {
-    onToken(TC_SEPARATOR, separator);
-    cout << "separator: " << separator << endl;
+int printSeparator(string separator) {
+    const int code = static_cast<unsigned char>(separator[0]);
+    int result = onToken(TC_SEPARATOR, separator, code, false);
+    if (!parserMode) cout << "separator: " << separator << endl;
+    return result;
 }
 
 string stripUnderscores(string s) {

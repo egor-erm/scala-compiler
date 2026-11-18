@@ -1,6 +1,6 @@
-#line 1 "lexer.cc"
+#line 1 "lexer\\lexer.cc"
 
-#line 3 "lexer.cc"
+#line 3 "lexer\\lexer.cc"
 
 #define  YY_INT_ALIGNED short int
 
@@ -692,32 +692,40 @@ static const flex_int16_t yy_chk[859] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#line 1 "lexer.l"
+#line 1 "lexer\\lexer.l"
 
 
-#line 9 "lexer.l"
+#line 9 "lexer\\lexer.l"
     #include <iostream>
     #include <fstream>
     #include <string>
     #include <cstdlib>
+    #include <cstring>
+    #include <deque>
     #include <vector>
+    #include "parser.tab.h"
+    #include "lexer_driver.h"
+
+#ifdef SCALA_LEXER_STANDALONE
+    YYSTYPE yylval;
+#endif
     using namespace std;
 
     enum TokenClass { TC_LITERAL, TC_IDENT, TC_KEYWORD, TC_OPERATOR, TC_SEPARATOR };
 
     void onGap(const char* text);                     // пробелы и комментарии между токенами
-    void onToken(TokenClass cls, const string& text); // учёт токена для вставки nl
+    int onToken(TokenClass cls, const string& text, int tokenCode, bool hasValue);
     void printNewline();
 
     size_t commentStart(const string& text);          // начало "//" или "/*" внутри токена
     bool isOperator(const string& text);              // оператор, а не символьный идентификатор
 
-    void printLiteral(string type, string literal);
-    void printType(string type);
-    void printKeyword(string keyword);
-    void printOperator(string op);
-    void printIdentificator(string id);
-    void printSeparator(string separator);
+    int printLiteral(string type, string literal);
+    int printType(string type);
+    int printKeyword(string keyword);
+    int printOperator(string op);
+    int printIdentificator(string id);
+    int printSeparator(string separator);
 
     string stripUnderscores(string s);
     string stripSuffix(string s, string chars);
@@ -729,11 +737,11 @@ static const flex_int16_t yy_chk[859] =
     string normalizeChar(string s);
     string decodeChar(string s);
 
-#line 732 "lexer.cc"
+#line 740 "lexer\\lexer.cc"
 /* хвост имени */
 /* variable */
 /*constructor identifier (класс, объект, тип) */
-#line 736 "lexer.cc"
+#line 744 "lexer\\lexer.cc"
 
 #define INITIAL 0
 #define STRING 1
@@ -867,16 +875,16 @@ YY_DECL
 		}
 
 	{
-#line 78 "lexer.l"
+#line 86 "lexer\\lexer.l"
 
 
 
-#line 82 "lexer.l"
+#line 90 "lexer\\lexer.l"
     string stringBuffer = "";
     int mlCommentDepth = 0;
 
 
-#line 879 "lexer.cc"
+#line 887 "lexer\\lexer.cc"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -932,452 +940,452 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 86 "lexer.l"
+#line 94 "lexer\\lexer.l"
 { onGap(YYText()); /* пробелы: могут содержать переводы строк */ }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 88 "lexer.l"
+#line 96 "lexer\\lexer.l"
 { onGap(YYText()); /* однострочный комментарий */ }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 90 "lexer.l"
+#line 98 "lexer\\lexer.l"
 { mlCommentDepth++; onGap(YYText()); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 91 "lexer.l"
+#line 99 "lexer\\lexer.l"
 { onGap(YYText()); if (--mlCommentDepth == 0) BEGIN(INITIAL); }
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 92 "lexer.l"
+#line 100 "lexer\\lexer.l"
 { onGap(YYText()); /* перевод строки внутри комментария учитывается*/ }
 	YY_BREAK
 case YY_STATE_EOF(ML_COMMENT):
-#line 93 "lexer.l"
+#line 101 "lexer\\lexer.l"
 { cerr << "ERROR: unterminated multi-line comment" << endl;
                        BEGIN(INITIAL); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 96 "lexer.l"
-{ printType(YYText()); }
+#line 104 "lexer\\lexer.l"
+{ return printType(YYText()); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 97 "lexer.l"
-{ printType(YYText()); }
+#line 105 "lexer\\lexer.l"
+{ return printType(YYText()); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 98 "lexer.l"
-{ printType(YYText()); }
+#line 106 "lexer\\lexer.l"
+{ return printType(YYText()); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 99 "lexer.l"
-{ printType(YYText()); }
+#line 107 "lexer\\lexer.l"
+{ return printType(YYText()); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 100 "lexer.l"
-{ printType(YYText()); }
+#line 108 "lexer\\lexer.l"
+{ return printType(YYText()); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 101 "lexer.l"
-{ printType(YYText()); } /* аналог void */
+#line 109 "lexer\\lexer.l"
+{ return printType(YYText()); } /* аналог void */
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 103 "lexer.l"
-{ printKeyword(YYText()); } /* Regular keywords */
+#line 111 "lexer\\lexer.l"
+{ return printKeyword(YYText()); } /* Regular keywords */
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 104 "lexer.l"
-{ printKeyword(YYText()); }
+#line 112 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 105 "lexer.l"
-{ printKeyword(YYText()); }
+#line 113 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 106 "lexer.l"
-{ printKeyword(YYText()); }
+#line 114 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 107 "lexer.l"
-{ printKeyword(YYText()); }
+#line 115 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 108 "lexer.l"
-{ printKeyword(YYText()); }
+#line 116 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 109 "lexer.l"
-{ printKeyword(YYText()); }
+#line 117 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 110 "lexer.l"
-{ printKeyword(YYText()); }
+#line 118 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 111 "lexer.l"
-{ printKeyword(YYText()); }
+#line 119 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 112 "lexer.l"
-{ printKeyword(YYText()); }
+#line 120 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 113 "lexer.l"
-{ printKeyword(YYText()); }
+#line 121 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 114 "lexer.l"
-{ printKeyword(YYText()); }
+#line 122 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 115 "lexer.l"
-{ printKeyword(YYText()); }
+#line 123 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 116 "lexer.l"
-{ printKeyword(YYText()); }
+#line 124 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 117 "lexer.l"
-{ printKeyword(YYText()); }
+#line 125 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 118 "lexer.l"
-{ printKeyword(YYText()); }
+#line 126 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 119 "lexer.l"
-{ printKeyword(YYText()); }
+#line 127 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 120 "lexer.l"
-{ printKeyword(YYText()); }
+#line 128 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 121 "lexer.l"
-{ printKeyword(YYText()); }
+#line 129 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 122 "lexer.l"
-{ printKeyword(YYText()); }
+#line 130 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 123 "lexer.l"
-{ printKeyword(YYText()); }
+#line 131 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 124 "lexer.l"
-{ printKeyword(YYText()); }
+#line 132 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 125 "lexer.l"
-{ printKeyword(YYText()); }
+#line 133 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 126 "lexer.l"
-{ printKeyword(YYText()); }
+#line 134 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 127 "lexer.l"
-{ printKeyword(YYText()); }
+#line 135 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 128 "lexer.l"
-{ printKeyword(YYText()); }
+#line 136 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 129 "lexer.l"
-{ printKeyword(YYText()); }
+#line 137 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 130 "lexer.l"
-{ printKeyword(YYText()); }
+#line 138 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 131 "lexer.l"
-{ printKeyword(YYText()); }
+#line 139 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 132 "lexer.l"
-{ printKeyword(YYText()); }
+#line 140 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 133 "lexer.l"
-{ printKeyword(YYText()); }
+#line 141 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 134 "lexer.l"
-{ printKeyword(YYText()); }
+#line 142 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 135 "lexer.l"
-{ printKeyword(YYText()); }
+#line 143 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 136 "lexer.l"
-{ printKeyword(YYText()); }
+#line 144 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 137 "lexer.l"
-{ printKeyword(YYText()); }
+#line 145 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 138 "lexer.l"
-{ printKeyword(YYText()); }
+#line 146 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 139 "lexer.l"
-{ printKeyword(YYText()); }
+#line 147 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 140 "lexer.l"
-{ printKeyword(YYText()); }
+#line 148 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 141 "lexer.l"
-{ printKeyword(YYText()); }
+#line 149 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 143 "lexer.l"
-{ printKeyword(YYText()); } /* Soft keywords */
+#line 151 "lexer\\lexer.l"
+{ return printKeyword(YYText()); } /* Soft keywords */
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 144 "lexer.l"
-{ printKeyword(YYText()); }
+#line 152 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 145 "lexer.l"
-{ printKeyword(YYText()); }
+#line 153 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 146 "lexer.l"
-{ printKeyword(YYText()); }
+#line 154 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 147 "lexer.l"
-{ printKeyword(YYText()); }
+#line 155 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 148 "lexer.l"
-{ printKeyword(YYText()); }
+#line 156 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 149 "lexer.l"
-{ printKeyword(YYText()); }
+#line 157 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 150 "lexer.l"
-{ printKeyword(YYText()); }
+#line 158 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 151 "lexer.l"
-{ printKeyword(YYText()); }
+#line 159 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 152 "lexer.l"
-{ printKeyword(YYText()); }
+#line 160 "lexer\\lexer.l"
+{ return printKeyword(YYText()); }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 154 "lexer.l"
-{ printLiteral("double", normalizeDouble(YYText())); }
+#line 162 "lexer\\lexer.l"
+{ return printLiteral("double", normalizeDouble(YYText())); }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 156 "lexer.l"
-{ printLiteral("int", normalizeInt(YYText())); }
+#line 164 "lexer\\lexer.l"
+{ return printLiteral("int", normalizeInt(YYText())); }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 157 "lexer.l"
-{ printLiteral("int", normalizeBinInt(YYText())); }
+#line 165 "lexer\\lexer.l"
+{ return printLiteral("int", normalizeBinInt(YYText())); }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 158 "lexer.l"
-{ printLiteral("int", normalizeHexInt(YYText())); }
+#line 166 "lexer\\lexer.l"
+{ return printLiteral("int", normalizeHexInt(YYText())); }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 160 "lexer.l"
-{ printSeparator(YYText()); } /* Разделители */
+#line 168 "lexer\\lexer.l"
+{ return printSeparator(YYText()); } /* Разделители */
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 161 "lexer.l"
-{ printSeparator(YYText()); }
+#line 169 "lexer\\lexer.l"
+{ return printSeparator(YYText()); }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 162 "lexer.l"
-{ printSeparator(YYText()); }
+#line 170 "lexer\\lexer.l"
+{ return printSeparator(YYText()); }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 163 "lexer.l"
-{ printSeparator(YYText()); }
+#line 171 "lexer\\lexer.l"
+{ return printSeparator(YYText()); }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 164 "lexer.l"
-{ printSeparator(YYText()); }
+#line 172 "lexer\\lexer.l"
+{ return printSeparator(YYText()); }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 165 "lexer.l"
-{ printSeparator(YYText()); }
+#line 173 "lexer\\lexer.l"
+{ return printSeparator(YYText()); }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 166 "lexer.l"
-{ printSeparator(YYText()); }
+#line 174 "lexer\\lexer.l"
+{ return printSeparator(YYText()); }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 167 "lexer.l"
-{ printSeparator(YYText()); }
+#line 175 "lexer\\lexer.l"
+{ return printSeparator(YYText()); }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 169 "lexer.l"
-{ printLiteral("char", normalizeChar(YYText())); }
+#line 177 "lexer\\lexer.l"
+{ return printLiteral("char", normalizeChar(YYText())); }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 171 "lexer.l"
+#line 179 "lexer\\lexer.l"
 { stringBuffer = ""; BEGIN(STRING); }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 172 "lexer.l"
+#line 180 "lexer\\lexer.l"
 { stringBuffer += YYText(); }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 173 "lexer.l"
+#line 181 "lexer\\lexer.l"
 { stringBuffer += '\n'; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 174 "lexer.l"
+#line 182 "lexer\\lexer.l"
 { stringBuffer += '\\'; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 175 "lexer.l"
+#line 183 "lexer\\lexer.l"
 { stringBuffer += '"'; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 177 "lexer.l"
+#line 185 "lexer\\lexer.l"
 { stringBuffer += '\t'; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 178 "lexer.l"
+#line 186 "lexer\\lexer.l"
 { stringBuffer += '\r'; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 179 "lexer.l"
+#line 187 "lexer\\lexer.l"
 { stringBuffer += '\b'; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 180 "lexer.l"
+#line 188 "lexer\\lexer.l"
 { stringBuffer += '\f'; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 182 "lexer.l"
+#line 190 "lexer\\lexer.l"
 {stringBuffer += decodeChar(YYText());}
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 183 "lexer.l"
+#line 191 "lexer\\lexer.l"
 {stringBuffer += decodeChar(YYText());}
 	YY_BREAK
 case 85:
 /* rule 85 can match eol */
 YY_RULE_SETUP
-#line 185 "lexer.l"
+#line 193 "lexer\\lexer.l"
 {  }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 187 "lexer.l"
-{ printLiteral("string", stringBuffer);
-                       BEGIN(INITIAL); }
+#line 195 "lexer\\lexer.l"
+{ BEGIN(INITIAL);
+                       return printLiteral("string", stringBuffer); }
 	YY_BREAK
 case 87:
 /* rule 87 can match eol */
 YY_RULE_SETUP
-#line 190 "lexer.l"
+#line 198 "lexer\\lexer.l"
 { cerr << "ERROR: EOL in string" << endl;
                        BEGIN(INITIAL); }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 193 "lexer.l"
+#line 201 "lexer\\lexer.l"
 {
     /* операторная часть имени обрывается на комментарии: a_+/*...*/
     string text = YYText();
@@ -1386,12 +1394,12 @@ YY_RULE_SETUP
         yyless(cut);
         text = text.substr(0, cut);
     }
-    printIdentificator(text);
+    return printIdentificator(text);
 }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 204 "lexer.l"
+#line 212 "lexer\\lexer.l"
 {
     /* Обработка ситуаций по типу "a +/* c * b" (чтобы +/* не распознался как идентификатор) */
     string text = YYText();
@@ -1406,27 +1414,27 @@ YY_RULE_SETUP
             yyless(cut);
             text = text.substr(0, cut);
         }
-        if (isOperator(text)) printOperator(text);
-        else printIdentificator(text);
+        if (isOperator(text)) return printOperator(text);
+        else return printIdentificator(text);
     }
 }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 223 "lexer.l"
-{ printSeparator(YYText()); }
+#line 231 "lexer\\lexer.l"
+{ return printSeparator(YYText()); }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 225 "lexer.l"
+#line 233 "lexer\\lexer.l"
 { cerr << "Unexpected char \'" << YYText()[0] << "\'" << endl; BEGIN(INITIAL);}
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 227 "lexer.l"
+#line 235 "lexer\\lexer.l"
 ECHO;
 	YY_BREAK
-#line 1429 "lexer.cc"
+#line 1437 "lexer\\lexer.cc"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(STRING):
 	yyterminate();
@@ -2391,9 +2399,55 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 227 "lexer.l"
+#line 235 "lexer\\lexer.l"
 
 
+namespace {
+
+struct PendingToken {
+    int code;
+    char* value;
+};
+
+yyFlexLexer* activeLexer = nullptr;
+std::deque<PendingToken> tokenBuffer;
+bool parserMode = false;
+
+char* copyTokenValue(const string& text) {
+    char* result = static_cast<char*>(std::malloc(text.size() + 1));
+    if (result == nullptr) {
+        std::cerr << "Out of memory while copying token value" << std::endl;
+        std::exit(1);
+    }
+    std::memcpy(result, text.c_str(), text.size() + 1);
+    return result;
+}
+
+int popBufferedToken() {
+    PendingToken token = tokenBuffer.front();
+    tokenBuffer.pop_front();
+    yylval.text = token.value;
+    return token.code;
+}
+
+} // namespace
+
+void setScalaLexer(yyFlexLexer* lexer) {
+    activeLexer = lexer;
+}
+
+void setScalaLexerParserMode(bool enabled) {
+    parserMode = enabled;
+}
+
+int yylex() {
+    if (!tokenBuffer.empty()) {
+        return popBufferedToken();
+    }
+    return activeLexer == nullptr ? 0 : activeLexer->yylex();
+}
+
+#ifdef SCALA_LEXER_STANDALONE
 int main(int argc, char** argv) {
     if (argc < 2) {
         cerr << "Usage: " << argv[0] << " <file.scala>" << endl;
@@ -2407,10 +2461,13 @@ int main(int argc, char** argv) {
     }
 
     yyFlexLexer lexer(&in, &cout);
-    lexer.yylex();
+    setScalaLexer(&lexer);
+    setScalaLexerParserMode(false);
+    while (yylex() != 0) {}
 
     return 0;
 }
+#endif
 
 int gapNewlineCount = 0;        // фактическое число переводов строк между токенами
 bool lastCanEnd = false;      // предыдущий токен может завершать оператор
@@ -2514,54 +2571,143 @@ void onGap(const char* text) {
     }
 }
 
-void onToken(TokenClass cls, const string& text) {
+int onToken(TokenClass cls, const string& text, int tokenCode, bool hasValue) {
     if (pendingCase) {
         pendingCase = false;
         // у case class / case object нет "=>", область для них не открывается
         if (!(cls == TC_KEYWORD && isOneOf(text, {"class", "object"}))) regions.push_back("=>");
     }
-    if (gapNewlineCount > 0 && lastCanEnd && canBeginStatement(cls, text) && newlinesEnabled()) {
+
+    const bool insertNewlines = gapNewlineCount > 0 && lastCanEnd &&
+        canBeginStatement(cls, text) && newlinesEnabled();
+
+    char* value = hasValue ? copyTokenValue(text) : nullptr;
+    int result = tokenCode;
+
+    if (insertNewlines) {
         for (int i = 0; i < gapNewlineCount; i++) {
             printNewline();
+            tokenBuffer.push_back({NL, nullptr});
         }
+        tokenBuffer.push_back({tokenCode, value});
+        result = popBufferedToken();
+    } else {
+        yylval.text = value;
     }
+
     gapNewlineCount = 0;
     updateRegions(cls, text);
     lastCanEnd = canEndStatement(cls, text);
+    return result;
 }
 
 void printNewline() {
-    cout << "newline: nl" << endl;
+    if (!parserMode) {
+        cout << "newline: nl" << endl;
+    }
 }
 
-void printLiteral(string type, string literal) {
-    onToken(TC_LITERAL, literal);
-    cout << type << " literal: " << literal << endl;
+int printLiteral(string type, string literal) {
+    int code = UNSUPPORTED;
+    if (type == "int") code = LITINT;
+    else if (type == "double") code = LITDOUBLE;
+    else if (type == "char") code = LITCHAR;
+    else if (type == "string") code = LITSTR;
+
+    int result = onToken(TC_LITERAL, literal, code, true);
+    if (!parserMode) cout << type << " literal: " << literal << endl;
+    return result;
 }
 
-void printType(string type) {
-    onToken(TC_IDENT, type);
-    cout << "type: " << type << endl;
+int printType(string type) {
+    const bool isArray = type == "Array";
+    int result = onToken(TC_IDENT, type, isArray ? TARRAY : ID, !isArray);
+    if (!parserMode) cout << "type: " << type << endl;
+    return result;
 }
 
-void printKeyword(string keyword) {
-    onToken(TC_KEYWORD, keyword);
-    cout << "keyword: " << keyword << endl;
+int printKeyword(string keyword) {
+    struct KeywordToken { const char* word; int code; };
+    static const KeywordToken tokens[] = {
+        {"while", WHILE}, {"do", DO}, {"for", FOR},
+        {"val", VAL}, {"var", VAR}, {"new", NEW},
+        {"if", IF}, {"else", ELSE}, {"case", CASE},
+        {"try", TRY}, {"catch", CATCH}, {"finally", FINALLY},
+        {"throw", THROW}, {"return", RETURN}, {"def", DEF},
+        {"abstract", ABSTRACT}, {"sealed", SEALED}, {"final", FINAL},
+        {"override", OVERRIDE}, {"extends", EXTENDS}, {"class", CLASS},
+        {"super", SUPER}, {"private", PRIVATE}, {"protected", PROTECTED},
+        {"this", THIS}, {"import", IMPORT}, {"type", TYPE}, {"object", OBJECT}
+    };
+
+    int code = UNSUPPORTED;
+    for (const KeywordToken& token : tokens) {
+        if (keyword == token.word) {
+            code = token.code;
+            break;
+        }
+    }
+
+    TokenClass tokenClass = TC_KEYWORD;
+    bool hasValue = code == UNSUPPORTED;
+
+    if (keyword == "true" || keyword == "false") {
+        code = LITBOOL;
+        tokenClass = TC_LITERAL;
+        hasValue = true;
+    } else if (keyword == "null") {
+        code = KNULL;
+        tokenClass = TC_LITERAL;
+    } else if (isOneOf(keyword, {"as", "derives", "end", "extension", "infix", "inline",
+                                 "opaque", "open", "transparent", "using"})) {
+        code = ID;
+        tokenClass = TC_IDENT;
+        hasValue = true;
+    }
+
+    int result = onToken(tokenClass, keyword, code, hasValue);
+    if (!parserMode) cout << "keyword: " << keyword << endl;
+    return result;
 }
 
-void printOperator(string op) {
-    onToken(TC_OPERATOR, op);
-    cout << "operator: " << op << endl;
+int printOperator(string op) {
+    struct OperatorToken { const char* text; int code; };
+    static const OperatorToken tokens[] = {
+        {"=>", R_ARROW}, {"<-", L_ARROW},
+        {"==", EQ}, {"!=", NEQ}, {"<=", LESS_EQ}, {">=", GREATER_EQ},
+        {"<<", SHL}, {">>", SHR}, {"&&", AND}, {"||", OR},
+        {"+=", PLUS_ASSIGN}, {"-=", MINUS_ASSIGN}, {"*=", STAR_ASSIGN},
+        {"/=", SLASH_ASSIGN}, {"%=", PERCENT_ASSIGN},
+        {"&=", AND_ASSIGN}, {"|=", OR_ASSIGN},
+        {"+", '+'}, {"-", '-'}, {"*", '*'}, {"/", '/'}, {"%", '%'},
+        {">", '>'}, {"<", '<'}, {"!", '!'}, {"&", '&'}, {"^", '^'},
+        {"|", '|'}, {"~", '~'}, {"=", '='}, {":", ':'}
+    };
+
+    int code = UNSUPPORTED;
+    for (const OperatorToken& token : tokens) {
+        if (op == token.text) {
+            code = token.code;
+            break;
+        }
+    }
+
+    int result = onToken(TC_OPERATOR, op, code, code == UNSUPPORTED);
+    if (!parserMode) cout << "operator: " << op << endl;
+    return result;
 }
 
-void printIdentificator(string id) {
-    onToken(TC_IDENT, id);
-    cout << "id: " << id << endl;
+int printIdentificator(string id) {
+    int result = onToken(TC_IDENT, id, ID, true);
+    if (!parserMode) cout << "id: " << id << endl;
+    return result;
 }
 
-void printSeparator(string separator) {
-    onToken(TC_SEPARATOR, separator);
-    cout << "separator: " << separator << endl;
+int printSeparator(string separator) {
+    const int code = static_cast<unsigned char>(separator[0]);
+    int result = onToken(TC_SEPARATOR, separator, code, false);
+    if (!parserMode) cout << "separator: " << separator << endl;
+    return result;
 }
 
 string stripUnderscores(string s) {
