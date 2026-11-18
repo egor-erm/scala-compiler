@@ -3,7 +3,7 @@
 
 #include "../Node.h"
 #include "../id/IdNode.h"
-#include "../stats/StatNodes.h"
+#include "../stmts/StmtNodes.h"
 #include "../type/SimpleTypeNode.h"
 #include "../exprs/ExprNodes.h"
 
@@ -13,11 +13,11 @@ class CaseNode : public Node {
 public:
     IdNode* pattern = nullptr;
     SimpleTypeNode* simpleType = nullptr;
-    BlockStatsNode* blockStats = nullptr;
+    BlockStmtsNode* blockStmts = nullptr;
 
     CaseNode() : Node("Case") {}
 
-    static CaseNode* createCase(IdNode* pattern, SimpleTypeNode* type, BlockStatsNode* body);
+    static CaseNode* createCase(IdNode* pattern, SimpleTypeNode* type, BlockStmtsNode* body);
     std::string getDotLabel() const override;
     std::vector<Node*> getChildren() const override;
 };
@@ -37,14 +37,14 @@ public:
     ExprNode* tryExpr = nullptr;
     CatchNode* catchPart = nullptr;
     ExprNode* finallyExpr = nullptr;
-    BlockStatsNode* finallyStats = nullptr;
+    BlockStmtsNode* finallyStmts = nullptr;
 
     TryExprNode() : Node("TryExpr") {}
 
     static TryExprNode* createExceptionBlock(ExprNode* body, CatchNode* catchPart,
                                              ExprNode* finallyPart);
-    static TryExprNode* createExceptionBlockWithStats(ExprNode* body, CatchNode* catchPart,
-                                                      BlockStatsNode* finallyPart);
+    static TryExprNode* createExceptionBlockWithStmts(ExprNode* body, CatchNode* catchPart,
+                                                      BlockStmtsNode* finallyPart);
     std::vector<Node*> getChildren() const override;
 };
 

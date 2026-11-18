@@ -7,26 +7,26 @@
 
 #include <vector>
 
-class TemplateStatNode : public Node {
+class TemplateStmtNode : public Node {
 public:
     DefNode* def = nullptr;
     ExprNode* expr = nullptr;
 
-    TemplateStatNode() : Node("TemplateStat") {}
+    TemplateStmtNode() : Node("TemplateStmt") {}
 
-    static TemplateStatNode* createDefTemplate(DefNode* definition);
-    static TemplateStatNode* createExprTemplate(ExprNode* expression);
+    static TemplateStmtNode* createDefTemplate(DefNode* definition);
+    static TemplateStmtNode* createExprTemplate(ExprNode* expression);
     std::vector<Node*> getChildren() const override;
 };
 
-class TemplateStatsNode : public Node {
+class TemplateStmtsNode : public Node {
 public:
-    std::vector<TemplateStatNode*> templateStats;
+    std::vector<TemplateStmtNode*> templateStmts;
 
-    TemplateStatsNode() : Node("TemplateStats") {}
+    TemplateStmtsNode() : Node("TemplateStmts") {}
 
-    static TemplateStatsNode* addTemplateStatToBackToList(TemplateStatsNode* list,
-                                                           TemplateStatNode* stat);
+    static TemplateStmtsNode* addTemplateStmtToBackToList(TemplateStmtsNode* list,
+                                                           TemplateStmtNode* stmt);
     std::vector<Node*> getChildren() const override;
 };
 

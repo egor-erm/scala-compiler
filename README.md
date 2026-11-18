@@ -67,7 +67,7 @@ python files\BiVi-bison-visualizer\bivi.py out\example_parsing.txt > out\parse_t
 - `nodes/Node.h` — базовый узел с `id`, `toDot()`, `getDotLabel()` и `getChildren()`;
 - `nodes/Types.h` — перечисления типов модификаторов, выражений, литералов и объявлений;
 - `nodes/nodes.h` — общий заголовок всех узлов;
-- тематические каталоги: `id`, `modifier`, `type`, `var`, `func`, `definitions`, `stats`,
+- тематические каталоги: `id`, `modifier`, `type`, `var`, `func`, `definitions`, `stmts`,
   `templates`, `class`, `exprs`, `generator`, `try`, `import`.
 
 В конкретных классах используются собственные типизированные поля. Например:
@@ -105,6 +105,8 @@ run_tests.bat
 
 - `tests/frontend.scala` — комплексный разбор с классами, объектом, наследованием, массивами,
   циклами, исключениями, `new` и разными выражениями;
+- `tests/parser_*.scala` — отдельные примеры для разных частей грамматики: выражения,
+  управляющие конструкции, классы, исключения, массивы и наследование;
 - `lexer/test.scala` — обычный объект с методами и переменными;
 - `lexer/tests/input` — отдельные лексические тесты.
 

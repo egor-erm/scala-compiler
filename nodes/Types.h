@@ -13,7 +13,7 @@ enum ModifierType {
     _OVERRIDE
 };
 
-enum StatType {
+enum StmtType {
     _VAL_DECL,
     _VAR_DECL,
     _CLASS,
@@ -89,7 +89,7 @@ enum PrefixExprType {
 };
 
 std::string toString(ModifierType type);
-std::string toString(StatType type);
+std::string toString(StmtType type);
 std::string toString(ClassParamType type);
 std::string toString(DefinitionType type);
 std::string toString(ClassExtensionTemplateType type);

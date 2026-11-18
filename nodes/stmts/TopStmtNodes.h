@@ -1,5 +1,5 @@
-#ifndef SCALA_NODES_TOPSTATNODES_H
-#define SCALA_NODES_TOPSTATNODES_H
+#ifndef SCALA_NODES_TOPSTMTNODES_H
+#define SCALA_NODES_TOPSTMTNODES_H
 
 #include "../Node.h"
 #include "../Types.h"
@@ -13,7 +13,7 @@
 
 class TemplateDefNode : public Node {
 public:
-    StatType type = _CLASS;
+    StmtType type = _CLASS;
     ClassDefNode* classDef = nullptr;
 
     TemplateDefNode() : Node("TemplateDef") {}
@@ -23,27 +23,27 @@ public:
     std::vector<Node*> getChildren() const override;
 };
 
-class TopStatNode : public Node {
+class TopStmtNode : public Node {
 public:
     TemplateDefNode* tmplDef = nullptr;
     ImportNode* importPart = nullptr;
     ExprNode* expr = nullptr;
 
-    TopStatNode() : Node("TopStat") {}
+    TopStmtNode() : Node("TopStmt") {}
 
-    static TopStatNode* createClass(TemplateDefNode* definition);
-    static TopStatNode* createImport(ImportNode* importNode);
-    static TopStatNode* createExpr(ExprNode* expression);
+    static TopStmtNode* createClass(TemplateDefNode* definition);
+    static TopStmtNode* createImport(ImportNode* importNode);
+    static TopStmtNode* createExpr(ExprNode* expression);
     std::vector<Node*> getChildren() const override;
 };
 
-class TopStatSeqNode : public Node {
+class TopStmtSeqNode : public Node {
 public:
-    std::vector<TopStatNode*> topStats;
+    std::vector<TopStmtNode*> topStmts;
 
-    TopStatSeqNode() : Node("TopStatSeq") {}
+    TopStmtSeqNode() : Node("TopStmtSeq") {}
 
-    static TopStatSeqNode* addTopStatToList(TopStatSeqNode* list, TopStatNode* stat);
+    static TopStmtSeqNode* addTopStmtToList(TopStmtSeqNode* list, TopStmtNode* stmt);
     std::vector<Node*> getChildren() const override;
 };
 

@@ -1,7 +1,7 @@
 #include "ExprNodes.h"
 
 #include "../generator/GeneratorNodes.h"
-#include "../stats/StatNodes.h"
+#include "../stmts/StmtNodes.h"
 #include "../try/TryNodes.h"
 
 ExprNode* ExprNode::createIfElse(ExprNode* cond, ExprNode* thenBranch, ExprNode* elseBranch) {
@@ -179,10 +179,10 @@ SimpleExprNode* SimpleExprNode::createNewArrayNode(SimpleTypeNode* type, Argumen
     return node;
 }
 
-SimpleExprNode* SimpleExprNode::createBlockStatsNode(BlockStatsNode* stats) {
+SimpleExprNode* SimpleExprNode::createBlockStmtsNode(BlockStmtsNode* stmts) {
     SimpleExprNode* node = new SimpleExprNode();
     node->type = _BLOCK_EXPR;
-    node->blockStats = stats;
+    node->blockStmts = stmts;
     return node;
 }
 
@@ -198,7 +198,7 @@ std::string SimpleExprNode::getDotLabel() const {
 }
 
 std::vector<Node*> SimpleExprNode::getChildren() const {
-    return {fullId, arguments, simpleType, blockStats, simpleExpr1};
+    return {fullId, arguments, simpleType, blockStmts, simpleExpr1};
 }
 
 SimpleExpr1Node* SimpleExpr1Node::createIntNode(int value) {
@@ -344,15 +344,15 @@ std::vector<Node*> SimpleExpr1Node::getChildren() const {
     return {simpleExpr, expr, argumentExprs, simpleExpr1, identifier, simpleType};
 }
 
-ConstrExprNode* ConstrExprNode::createConstrExpr(ArgumentExprsNode* args, BlockStatsNode* stats,
+ConstrExprNode* ConstrExprNode::createConstrExpr(ArgumentExprsNode* args, BlockStmtsNode* stmts,
                                                  bool isBlock) {
     ConstrExprNode* node = new ConstrExprNode();
     node->arguments = args;
-    node->blockStats = stats;
+    node->blockStmts = stmts;
     node->isBlock = isBlock;
     return node;
 }
 
 std::vector<Node*> ConstrExprNode::getChildren() const {
-    return {arguments, blockStats};
+    return {arguments, blockStmts};
 }

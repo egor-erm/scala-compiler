@@ -31,21 +31,21 @@ std::vector<Node*> ClassParamsNode::getChildren() const {
 }
 
 ExtensionClassTemplateNode* ExtensionClassTemplateNode::createExtendWithConstrAndBody(
-        IdNode* id, ArgumentExprsNode* args, TemplateStatsNode* body) {
+        IdNode* id, ArgumentExprsNode* args, TemplateStmtsNode* body) {
     ExtensionClassTemplateNode* node = new ExtensionClassTemplateNode();
     node->type = _EXTEND_WITH_CONSTRUCTOR_AND_BODY;
     node->fullId = id;
     node->argumentExprs = args;
-    node->templateStats = body;
+    node->templateStmts = body;
     return node;
 }
 
 ExtensionClassTemplateNode* ExtensionClassTemplateNode::createExtendWithBody(
-        IdNode* id, TemplateStatsNode* body) {
+        IdNode* id, TemplateStmtsNode* body) {
     ExtensionClassTemplateNode* node = new ExtensionClassTemplateNode();
     node->type = _EXTEND_WITH_BODY;
     node->fullId = id;
-    node->templateStats = body;
+    node->templateStmts = body;
     return node;
 }
 
@@ -54,20 +54,20 @@ std::string ExtensionClassTemplateNode::getDotLabel() const {
 }
 
 std::vector<Node*> ExtensionClassTemplateNode::getChildren() const {
-    return {fullId, argumentExprs, templateStats};
+    return {fullId, argumentExprs, templateStmts};
 }
 
 ClassTemplateOptNode* ClassTemplateOptNode::createClassWithInherit(
         ExtensionClassTemplateNode* extension) {
     ClassTemplateOptNode* node = new ClassTemplateOptNode();
     node->extensionPartClassTemplate = extension;
-    if (extension != nullptr) node->templateStats = extension->templateStats;
+    if (extension != nullptr) node->templateStmts = extension->templateStmts;
     return node;
 }
 
-ClassTemplateOptNode* ClassTemplateOptNode::createClassWithoutInherit(TemplateStatsNode* body) {
+ClassTemplateOptNode* ClassTemplateOptNode::createClassWithoutInherit(TemplateStmtsNode* body) {
     ClassTemplateOptNode* node = new ClassTemplateOptNode();
-    node->templateStats = body;
+    node->templateStmts = body;
     return node;
 }
 
@@ -77,7 +77,7 @@ std::vector<Node*> ClassTemplateOptNode::getChildren() const {
     if (extensionPartClassTemplate != nullptr) {
         children.push_back(extensionPartClassTemplate);
     } else {
-        children.push_back(templateStats);
+        children.push_back(templateStmts);
     }
     return children;
 }

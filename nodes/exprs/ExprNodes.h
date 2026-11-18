@@ -11,7 +11,7 @@
 
 class ArgumentExprsNode;
 class AssignmentNode;
-class BlockStatsNode;
+class BlockStmtsNode;
 class EnumeratorsNode;
 class InfixExprNode;
 class PrefixExprNode;
@@ -117,14 +117,14 @@ public:
     IdNode* fullId = nullptr;
     ArgumentExprsNode* arguments = nullptr;
     SimpleTypeNode* simpleType = nullptr;
-    BlockStatsNode* blockStats = nullptr;
+    BlockStmtsNode* blockStmts = nullptr;
     SimpleExpr1Node* simpleExpr1 = nullptr;
 
     SimpleExprNode() : Node("SimpleExpr") {}
 
     static SimpleExprNode* createNewObjectNode(IdNode* id, ArgumentExprsNode* args);
     static SimpleExprNode* createNewArrayNode(SimpleTypeNode* type, ArgumentExprsNode* args);
-    static SimpleExprNode* createBlockStatsNode(BlockStatsNode* stats);
+    static SimpleExprNode* createBlockStmtsNode(BlockStmtsNode* stmts);
     static SimpleExprNode* createSimpleExpr1Node(SimpleExpr1Node* expr);
     std::string getDotLabel() const override;
     std::vector<Node*> getChildren() const override;
@@ -172,12 +172,12 @@ public:
 class ConstrExprNode : public Node {
 public:
     ArgumentExprsNode* arguments = nullptr;
-    BlockStatsNode* blockStats = nullptr;
+    BlockStmtsNode* blockStmts = nullptr;
     bool isBlock = false;
 
     ConstrExprNode() : Node("ConstrExpr") {}
 
-    static ConstrExprNode* createConstrExpr(ArgumentExprsNode* args, BlockStatsNode* stats = nullptr,
+    static ConstrExprNode* createConstrExpr(ArgumentExprsNode* args, BlockStmtsNode* stmts = nullptr,
                                             bool isBlock = false);
     std::vector<Node*> getChildren() const override;
 };

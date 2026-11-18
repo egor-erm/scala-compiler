@@ -8,9 +8,9 @@
 #include "nodes/nodes.h"
 
 extern int yydebug;
-int yyparse(TopStatSeqNode** out_root);
+int yyparse(TopStmtSeqNode** out_root);
 
-void yyerror(TopStatSeqNode** out_root, const char* message) {
+void yyerror(TopStmtSeqNode** out_root, const char* message) {
     (void)out_root;
     std::fprintf(stderr, "%s\n", message);
 }
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     setScalaLexerParserMode(true);
 
     yydebug = 1;
-    TopStatSeqNode* root = nullptr;
+    TopStmtSeqNode* root = nullptr;
     const int status = yyparse(&root);
     setScalaLexerParserMode(false);
 

@@ -146,12 +146,12 @@ union YYSTYPE
     ClassTemplateOptNode* classTemplateOpt;
     ClassDefNode* classDef;
     TemplateDefNode* templateDef;
-    TemplateStatNode* templateStat;
-    TemplateStatsNode* templateStats;
-    TopStatNode* topStat;
-    TopStatSeqNode* topStatSeq;
-    BlockStatNode* blockStat;
-    BlockStatsNode* blockStats;
+    TemplateStmtNode* templateStat;
+    TemplateStmtsNode* templateStats;
+    TopStmtNode* topStat;
+    TopStmtSeqNode* topStatSeq;
+    BlockStmtNode* blockStat;
+    BlockStmtsNode* blockStats;
     ExprNode* expr;
     ExprsNode* exprs;
     ArgumentExprsNode* argumentExprs;
@@ -179,7 +179,7 @@ typedef union YYSTYPE YYSTYPE;
 extern YYSTYPE yylval;
 
 
-int yyparse (TopStatSeqNode** out_root);
+int yyparse (TopStmtSeqNode** out_root);
 
 
 #endif /* !YY_YY_PARSER_PARSER_TAB_H_INCLUDED  */

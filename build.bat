@@ -16,7 +16,7 @@ g++ -std=c++17 -I. -Iparser -Ilexer -I%TOOLS% ^
     main.cpp ^
     nodes\Node.cpp nodes\Types.cpp ^
     nodes\exprs\ExprNodes.cpp ^
-    nodes\stats\StatNodes.cpp nodes\stats\TopStatNodes.cpp ^
+    nodes\stmts\StmtNodes.cpp nodes\stmts\TopStmtNodes.cpp ^
     nodes\class\ClassNodes.cpp nodes\templates\TemplateNodes.cpp ^
     nodes\generator\GeneratorNodes.cpp nodes\try\TryNodes.cpp ^
     nodes\import\ImportNodes.cpp ^

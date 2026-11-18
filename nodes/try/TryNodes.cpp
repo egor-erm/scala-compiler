@@ -1,10 +1,10 @@
 #include "TryNodes.h"
 
-CaseNode* CaseNode::createCase(IdNode* patternName, SimpleTypeNode* type, BlockStatsNode* body) {
+CaseNode* CaseNode::createCase(IdNode* patternName, SimpleTypeNode* type, BlockStmtsNode* body) {
     CaseNode* node = new CaseNode();
     node->pattern = patternName;
     node->simpleType = type;
-    node->blockStats = body;
+    node->blockStmts = body;
     return node;
 }
 
@@ -13,7 +13,7 @@ std::string CaseNode::getDotLabel() const {
 }
 
 std::vector<Node*> CaseNode::getChildren() const {
-    return {pattern, simpleType, blockStats};
+    return {pattern, simpleType, blockStmts};
 }
 
 CatchNode* CatchNode::addCase(CatchNode* list, CaseNode* caseNode) {
@@ -37,15 +37,15 @@ TryExprNode* TryExprNode::createExceptionBlock(ExprNode* body, CatchNode* catchP
     return node;
 }
 
-TryExprNode* TryExprNode::createExceptionBlockWithStats(ExprNode* body, CatchNode* catchPart,
-                                                        BlockStatsNode* finallyPart) {
+TryExprNode* TryExprNode::createExceptionBlockWithStmts(ExprNode* body, CatchNode* catchPart,
+                                                        BlockStmtsNode* finallyPart) {
     TryExprNode* node = new TryExprNode();
     node->tryExpr = body;
     node->catchPart = catchPart;
-    node->finallyStats = finallyPart;
+    node->finallyStmts = finallyPart;
     return node;
 }
 
 std::vector<Node*> TryExprNode::getChildren() const {
-    return {tryExpr, catchPart, finallyExpr, finallyStats};
+    return {tryExpr, catchPart, finallyExpr, finallyStmts};
 }

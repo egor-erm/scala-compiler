@@ -13,7 +13,7 @@ std::string toString(ModifierType type) {
     return "modifier";
 }
 
-std::string toString(StatType type) {
+std::string toString(StmtType type) {
     switch (type) {
         case _VAL_DECL: return "val";
         case _VAR_DECL: return "var";
@@ -23,7 +23,7 @@ std::string toString(StatType type) {
         case _DEF: return "def";
         case _EXPR: return "expr";
     }
-    return "stat";
+    return "stmt";
 }
 
 std::string toString(ClassParamType type) {

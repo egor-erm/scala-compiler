@@ -77,7 +77,7 @@
 #include "nodes/nodes.h"
 
 int yylex();
-void yyerror(TopStatSeqNode** out_root, const char* message);
+void yyerror(TopStmtSeqNode** out_root, const char* message);
 
 static void print_semantic_string(FILE* out, const char* value) {
     fputc('"', out);
@@ -1247,7 +1247,7 @@ do {                                                                      \
 
 static void
 yy_symbol_value_print (FILE *yyo,
-                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, TopStatSeqNode** out_root)
+                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, TopStmtSeqNode** out_root)
 {
   FILE *yyoutput = yyo;
   YY_USE (yyoutput);
@@ -1312,7 +1312,7 @@ yy_symbol_value_print (FILE *yyo,
 
 static void
 yy_symbol_print (FILE *yyo,
-                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, TopStatSeqNode** out_root)
+                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, TopStmtSeqNode** out_root)
 {
   YYFPRINTF (yyo, "%s %s (",
              yykind < YYNTOKENS ? "token" : "nterm", yysymbol_name (yykind));
@@ -1351,7 +1351,7 @@ do {                                                            \
 
 static void
 yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp,
-                 int yyrule, TopStatSeqNode** out_root)
+                 int yyrule, TopStmtSeqNode** out_root)
 {
   int yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
@@ -1680,7 +1680,7 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
 
 static void
 yydestruct (const char *yymsg,
-            yysymbol_kind_t yykind, YYSTYPE *yyvaluep, TopStatSeqNode** out_root)
+            yysymbol_kind_t yykind, YYSTYPE *yyvaluep, TopStmtSeqNode** out_root)
 {
   YY_USE (yyvaluep);
   YY_USE (out_root);
@@ -2044,7 +2044,7 @@ int yynerrs;
 `----------*/
 
 int
-yyparse (TopStatSeqNode** out_root)
+yyparse (TopStmtSeqNode** out_root)
 {
     yy_state_fast_t yystate = 0;
     /* Number of tokens to shift before error messages enabled.  */
@@ -2290,7 +2290,7 @@ yyreduce:
     {
   case 2: /* program: semis_e  */
 #line 243 "parser\\parser.y"
-        { (yyval.topStatSeq) = nullptr; *out_root = new TopStatSeqNode(); }
+        { (yyval.topStatSeq) = nullptr; *out_root = new TopStmtSeqNode(); }
 #line 2295 "parser\\parser.tab.c"
     break;
 
@@ -2302,25 +2302,25 @@ yyreduce:
 
   case 4: /* top_list: top_stat  */
 #line 250 "parser\\parser.y"
-        { (yyval.topStatSeq) = TopStatSeqNode::addTopStatToList(nullptr, (yyvsp[0].topStat)); }
+        { (yyval.topStatSeq) = TopStmtSeqNode::addTopStmtToList(nullptr, (yyvsp[0].topStat)); }
 #line 2307 "parser\\parser.tab.c"
     break;
 
   case 5: /* top_list: top_list semis top_stat  */
 #line 252 "parser\\parser.y"
-        { (yyval.topStatSeq) = TopStatSeqNode::addTopStatToList((yyvsp[-2].topStatSeq), (yyvsp[0].topStat)); }
+        { (yyval.topStatSeq) = TopStmtSeqNode::addTopStmtToList((yyvsp[-2].topStatSeq), (yyvsp[0].topStat)); }
 #line 2313 "parser\\parser.tab.c"
     break;
 
   case 6: /* top_stat: import  */
 #line 257 "parser\\parser.y"
-        { (yyval.topStat) = TopStatNode::createImport((yyvsp[0].importNode)); }
+        { (yyval.topStat) = TopStmtNode::createImport((yyvsp[0].importNode)); }
 #line 2319 "parser\\parser.tab.c"
     break;
 
   case 7: /* top_stat: class_def  */
 #line 259 "parser\\parser.y"
-        { (yyval.topStat) = TopStatNode::createClass(TemplateDefNode::createClassDef((yyvsp[0].classDef))); }
+        { (yyval.topStat) = TopStmtNode::createClass(TemplateDefNode::createClassDef((yyvsp[0].classDef))); }
 #line 2325 "parser\\parser.tab.c"
     break;
 
@@ -2344,13 +2344,13 @@ yyreduce:
 
   case 21: /* stmt: def  */
 #line 301 "parser\\parser.y"
-        { (yyval.templateStat) = TemplateStatNode::createDefTemplate((yyvsp[0].def)); }
+        { (yyval.templateStat) = TemplateStmtNode::createDefTemplate((yyvsp[0].def)); }
 #line 2349 "parser\\parser.tab.c"
     break;
 
   case 22: /* stmt: expr  */
 #line 303 "parser\\parser.y"
-        { (yyval.templateStat) = TemplateStatNode::createExprTemplate((yyvsp[0].expr)); }
+        { (yyval.templateStat) = TemplateStmtNode::createExprTemplate((yyvsp[0].expr)); }
 #line 2355 "parser\\parser.tab.c"
     break;
 
@@ -2490,7 +2490,7 @@ yyreduce:
 
   case 45: /* stmt_list_e: semis_e  */
 #line 381 "parser\\parser.y"
-        { (yyval.templateStats) = new TemplateStatsNode(); }
+        { (yyval.templateStats) = new TemplateStmtsNode(); }
 #line 2495 "parser\\parser.tab.c"
     break;
 
@@ -2502,13 +2502,13 @@ yyreduce:
 
   case 47: /* stmt_list: stmt  */
 #line 388 "parser\\parser.y"
-        { (yyval.templateStats) = TemplateStatsNode::addTemplateStatToBackToList(nullptr, (yyvsp[0].templateStat)); }
+        { (yyval.templateStats) = TemplateStmtsNode::addTemplateStmtToBackToList(nullptr, (yyvsp[0].templateStat)); }
 #line 2507 "parser\\parser.tab.c"
     break;
 
   case 48: /* stmt_list: stmt_list semis stmt  */
 #line 390 "parser\\parser.y"
-        { (yyval.templateStats) = TemplateStatsNode::addTemplateStatToBackToList((yyvsp[-2].templateStats), (yyvsp[0].templateStat)); }
+        { (yyval.templateStats) = TemplateStmtsNode::addTemplateStmtToBackToList((yyvsp[-2].templateStats), (yyvsp[0].templateStat)); }
 #line 2513 "parser\\parser.tab.c"
     break;
 
@@ -2669,7 +2669,7 @@ yyreduce:
 
   case 74: /* block_stats: semis_e  */
 #line 486 "parser\\parser.y"
-        { (yyval.blockStats) = new BlockStatsNode(); }
+        { (yyval.blockStats) = new BlockStmtsNode(); }
 #line 2674 "parser\\parser.tab.c"
     break;
 
@@ -2681,25 +2681,25 @@ yyreduce:
 
   case 76: /* block_list: block_stat  */
 #line 493 "parser\\parser.y"
-        { (yyval.blockStats) = BlockStatsNode::addBlockStatToList(nullptr, (yyvsp[0].blockStat)); }
+        { (yyval.blockStats) = BlockStmtsNode::addBlockStmtToList(nullptr, (yyvsp[0].blockStat)); }
 #line 2686 "parser\\parser.tab.c"
     break;
 
   case 77: /* block_list: block_list semis block_stat  */
 #line 495 "parser\\parser.y"
-        { (yyval.blockStats) = BlockStatsNode::addBlockStatToList((yyvsp[-2].blockStats), (yyvsp[0].blockStat)); }
+        { (yyval.blockStats) = BlockStmtsNode::addBlockStmtToList((yyvsp[-2].blockStats), (yyvsp[0].blockStat)); }
 #line 2692 "parser\\parser.tab.c"
     break;
 
   case 78: /* block_stat: local_def  */
 #line 500 "parser\\parser.y"
-        { (yyval.blockStat) = BlockStatNode::createLocalDef((yyvsp[0].varDefs)); }
+        { (yyval.blockStat) = BlockStmtNode::createLocalDef((yyvsp[0].varDefs)); }
 #line 2698 "parser\\parser.tab.c"
     break;
 
   case 79: /* block_stat: expr  */
 #line 502 "parser\\parser.y"
-        { (yyval.blockStat) = BlockStatNode::createExprNode((yyvsp[0].expr)); }
+        { (yyval.blockStat) = BlockStmtNode::createExprNode((yyvsp[0].expr)); }
 #line 2704 "parser\\parser.tab.c"
     break;
 
@@ -3139,7 +3139,7 @@ yyreduce:
 
   case 150: /* simple: '{' block_stats '}'  */
 #line 706 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createBlockStatsNode((yyvsp[-1].blockStats)); }
+        { (yyval.simpleExpr) = SimpleExprNode::createBlockStmtsNode((yyvsp[-1].blockStats)); }
 #line 3144 "parser\\parser.tab.c"
     break;
 

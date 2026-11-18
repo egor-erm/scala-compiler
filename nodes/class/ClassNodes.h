@@ -41,15 +41,15 @@ public:
     ClassExtensionTemplateType type = _EXTEND_WITH_BODY;
     IdNode* fullId = nullptr;
     ArgumentExprsNode* argumentExprs = nullptr;
-    TemplateStatsNode* templateStats = nullptr;
+    TemplateStmtsNode* templateStmts = nullptr;
 
     ExtensionClassTemplateNode() : Node("ExtensionClassTemplate") {}
 
     static ExtensionClassTemplateNode* createExtendWithConstrAndBody(IdNode* id,
                                                                      ArgumentExprsNode* args,
-                                                                     TemplateStatsNode* body);
+                                                                     TemplateStmtsNode* body);
     static ExtensionClassTemplateNode* createExtendWithBody(IdNode* id,
-                                                            TemplateStatsNode* body);
+                                                            TemplateStmtsNode* body);
     std::string getDotLabel() const override;
     std::vector<Node*> getChildren() const override;
 };
@@ -57,13 +57,13 @@ public:
 class ClassTemplateOptNode : public Node {
 public:
     ExtensionClassTemplateNode* extensionPartClassTemplate = nullptr;
-    TemplateStatsNode* templateStats = nullptr;
+    TemplateStmtsNode* templateStmts = nullptr;
     ModifiersNode* modifiers = nullptr;
 
     ClassTemplateOptNode() : Node("ClassTemplateOpt") {}
 
     static ClassTemplateOptNode* createClassWithInherit(ExtensionClassTemplateNode* extension);
-    static ClassTemplateOptNode* createClassWithoutInherit(TemplateStatsNode* body);
+    static ClassTemplateOptNode* createClassWithoutInherit(TemplateStmtsNode* body);
     std::vector<Node*> getChildren() const override;
 };
 
@@ -74,7 +74,7 @@ public:
     ModifierNode* primaryConstructModifier = nullptr;
     ClassParamsNode* classParams = nullptr;
     ClassTemplateOptNode* classTemplateOpt = nullptr;
-    StatType type = _CLASS;
+    StmtType type = _CLASS;
 
     ClassDefNode() : Node("ClassDef") {}
 

@@ -15,7 +15,7 @@ public:
     std::vector<IdNode*> fullIds;
     SimpleTypeNode* simpleType = nullptr;
     ExprNode* expr = nullptr;
-    StatType type = _VAL_DECL;
+    StmtType type = _VAL_DECL;
     bool isLocal = false;
 
     VarDefsNode() : Node("VarDef") {}

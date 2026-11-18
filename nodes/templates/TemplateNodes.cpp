@@ -1,30 +1,30 @@
 #include "TemplateNodes.h"
 
-TemplateStatNode* TemplateStatNode::createDefTemplate(DefNode* definition) {
-    TemplateStatNode* node = new TemplateStatNode();
+TemplateStmtNode* TemplateStmtNode::createDefTemplate(DefNode* definition) {
+    TemplateStmtNode* node = new TemplateStmtNode();
     node->def = definition;
     return node;
 }
 
-TemplateStatNode* TemplateStatNode::createExprTemplate(ExprNode* expression) {
-    TemplateStatNode* node = new TemplateStatNode();
+TemplateStmtNode* TemplateStmtNode::createExprTemplate(ExprNode* expression) {
+    TemplateStmtNode* node = new TemplateStmtNode();
     node->expr = expression;
     return node;
 }
 
-std::vector<Node*> TemplateStatNode::getChildren() const {
+std::vector<Node*> TemplateStmtNode::getChildren() const {
     return {def, expr};
 }
 
-TemplateStatsNode* TemplateStatsNode::addTemplateStatToBackToList(TemplateStatsNode* list,
-                                                                   TemplateStatNode* stat) {
-    if (list == nullptr) list = new TemplateStatsNode();
-    if (stat != nullptr) list->templateStats.push_back(stat);
+TemplateStmtsNode* TemplateStmtsNode::addTemplateStmtToBackToList(TemplateStmtsNode* list,
+                                                                   TemplateStmtNode* stmt) {
+    if (list == nullptr) list = new TemplateStmtsNode();
+    if (stmt != nullptr) list->templateStmts.push_back(stmt);
     return list;
 }
 
-std::vector<Node*> TemplateStatsNode::getChildren() const {
+std::vector<Node*> TemplateStmtsNode::getChildren() const {
     std::vector<Node*> children;
-    for (TemplateStatNode* stat : templateStats) children.push_back(stat);
+    for (TemplateStmtNode* stmt : templateStmts) children.push_back(stmt);
     return children;
 }

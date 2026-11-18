@@ -11,7 +11,7 @@
 #include "nodes/nodes.h"
 
 int yylex();
-void yyerror(TopStatSeqNode** out_root, const char* message);
+void yyerror(TopStmtSeqNode** out_root, const char* message);
 
 static void print_semantic_string(FILE* out, const char* value) {
     fputc('"', out);
@@ -110,7 +110,7 @@ static SimpleTypeNode* makeArrayType(SimpleTypeNode* elementType) {
 %define parse.trace
 %define parse.error verbose
 %token-table
-%parse-param { TopStatSeqNode** out_root }
+%parse-param { TopStmtSeqNode** out_root }
 
 %union {
     char* text;
@@ -132,12 +132,12 @@ static SimpleTypeNode* makeArrayType(SimpleTypeNode* elementType) {
     ClassTemplateOptNode* classTemplateOpt;
     ClassDefNode* classDef;
     TemplateDefNode* templateDef;
-    TemplateStatNode* templateStat;
-    TemplateStatsNode* templateStats;
-    TopStatNode* topStat;
-    TopStatSeqNode* topStatSeq;
-    BlockStatNode* blockStat;
-    BlockStatsNode* blockStats;
+    TemplateStmtNode* templateStat;
+    TemplateStmtsNode* templateStats;
+    TopStmtNode* topStat;
+    TopStmtSeqNode* topStatSeq;
+    BlockStmtNode* blockStat;
+    BlockStmtsNode* blockStats;
     ExprNode* expr;
     ExprsNode* exprs;
     ArgumentExprsNode* argumentExprs;
@@ -240,23 +240,23 @@ static SimpleTypeNode* makeArrayType(SimpleTypeNode* elementType) {
 
 program:
     semis_e
-        { $$ = nullptr; *out_root = new TopStatSeqNode(); }
+        { $$ = nullptr; *out_root = new TopStmtSeqNode(); }
   | semis_e top_list semis_e
         { $$ = nullptr; *out_root = $2; }
   ;
 
 top_list:
     top_stat
-        { $$ = TopStatSeqNode::addTopStatToList(nullptr, $1); }
+        { $$ = TopStmtSeqNode::addTopStmtToList(nullptr, $1); }
   | top_list semis top_stat
-        { $$ = TopStatSeqNode::addTopStatToList($1, $3); }
+        { $$ = TopStmtSeqNode::addTopStmtToList($1, $3); }
   ;
 
 top_stat:
     import
-        { $$ = TopStatNode::createImport($1); }
+        { $$ = TopStmtNode::createImport($1); }
   | class_def
-        { $$ = TopStatNode::createClass(TemplateDefNode::createClassDef($1)); }
+        { $$ = TopStmtNode::createClass(TemplateDefNode::createClassDef($1)); }
   ;
 
 import:
@@ -298,9 +298,9 @@ nl_e:
 
 stmt:
     def
-        { $$ = TemplateStatNode::createDefTemplate($1); }
+        { $$ = TemplateStmtNode::createDefTemplate($1); }
   | expr
-        { $$ = TemplateStatNode::createExprTemplate($1); }
+        { $$ = TemplateStmtNode::createExprTemplate($1); }
   ;
 
 def:
@@ -378,16 +378,16 @@ class_body:
 
 stmt_list_e:
     semis_e
-        { $$ = new TemplateStatsNode(); }
+        { $$ = new TemplateStmtsNode(); }
   | semis_e stmt_list semis_e
         { $$ = $2; }
   ;
 
 stmt_list:
     stmt
-        { $$ = TemplateStatsNode::addTemplateStatToBackToList(nullptr, $1); }
+        { $$ = TemplateStmtsNode::addTemplateStmtToBackToList(nullptr, $1); }
   | stmt_list semis stmt
-        { $$ = TemplateStatsNode::addTemplateStatToBackToList($1, $3); }
+        { $$ = TemplateStmtsNode::addTemplateStmtToBackToList($1, $3); }
   ;
 
 id_list:
@@ -483,23 +483,23 @@ type_e:
 
 block_stats:
     semis_e
-        { $$ = new BlockStatsNode(); }
+        { $$ = new BlockStmtsNode(); }
   | semis_e block_list semis_e
         { $$ = $2; }
   ;
 
 block_list:
     block_stat
-        { $$ = BlockStatsNode::addBlockStatToList(nullptr, $1); }
+        { $$ = BlockStmtsNode::addBlockStmtToList(nullptr, $1); }
   | block_list semis block_stat
-        { $$ = BlockStatsNode::addBlockStatToList($1, $3); }
+        { $$ = BlockStmtsNode::addBlockStmtToList($1, $3); }
   ;
 
 block_stat:
     local_def
-        { $$ = BlockStatNode::createLocalDef($1); }
+        { $$ = BlockStmtNode::createLocalDef($1); }
   | expr
-        { $$ = BlockStatNode::createExprNode($1); }
+        { $$ = BlockStmtNode::createExprNode($1); }
   ;
 
 local_def:
@@ -703,7 +703,7 @@ simple:
         { $$ = SimpleExprNode::createSimpleExpr1Node(
               SimpleExpr1Node::createParenthesizedExprNode($2)); }
   | '{' block_stats '}'
-        { $$ = SimpleExprNode::createBlockStatsNode($2); }
+        { $$ = SimpleExprNode::createBlockStmtsNode($2); }
   | NEW ID args
         { $$ = SimpleExprNode::createNewObjectNode(makeId($2), $3); }
   | NEW TARRAY '[' type ']' '(' expr ')'
