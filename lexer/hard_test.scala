@@ -5,9 +5,20 @@ object Main {
       = 3
 
       var aaa = 3
+      var bbb = 5
 
-      aaa += 
-      5
+      aaa = bbb + 
+      // test
+      10
+
+      aaa = bbb + 
+      /*
+      многострочный
+      комментарий
+      */
+      10
+
+      println("test " + aaa)
 
       println("test " + aaa)
 
@@ -73,13 +84,5 @@ object Main {
          println("for: n = " + n)}
 
       return x
-   }
-}
-
-class Test 
-
-{
-   def hi(): Int = {
-      return 5
    }
 }

@@ -27,6 +27,16 @@
     int onToken(TokenClass cls, const string& text, int tokenCode, bool hasValue);
     void printNewline();
 
+    /*
+     * Состояние для удаления блочных комментариев, занимающих целые строки.
+     * Такой комментарий не должен добавлять лишний nl: в конструкции
+     *   a = b + <перенос> <блочный комментарий на несколько строк> <перенос> c
+     * между '+' и 'c' должен остаться ровно один nl.
+     */
+    bool atLineStart = true;          // на текущей строке ещё не было токенов
+    bool commentOwnLine = false;      // блочный комментарий начинается с начала строки
+    bool skipOneGapNewline = false;   // не считать первый nl после закрытия комментария
+
     size_t commentStart(const string& text);          // начало "//" или "/*" внутри токена
     bool isOperator(const string& text);              // оператор, а не символьный идентификатор
 
@@ -92,11 +102,22 @@ CHAR_LITERAL '{CHAR_CONTENT}'
 
 {WHITESPACE}+        { onGap(YYText()); /* пробелы: могут содержать переводы строк */ }
 
-"//"[^\n]*           { onGap(YYText()); /* однострочный комментарий */ }
+"//"[^\n]*           {
+    onGap(YYText()); /* однострочный комментарий сам nl не добавляет */
+    // если комментарий занимал целую строку, удаляем и её завершающий nl
+    skipOneGapNewline = atLineStart;
+}
 
-<ML_COMMENT>"/*"     { mlCommentDepth++; onGap(YYText()); }
-<ML_COMMENT>"*/"     { onGap(YYText()); if (--mlCommentDepth == 0) BEGIN(INITIAL); }
-<ML_COMMENT>\n|.     { onGap(YYText()); /* перевод строки внутри комментария учитывается*/ }
+<ML_COMMENT>"/*"     { mlCommentDepth++; }
+<ML_COMMENT>"*/"     {
+    if (--mlCommentDepth == 0) {
+        BEGIN(INITIAL);
+        // комментарий, занимавший целую строку, удаляем вместе с её концом
+        skipOneGapNewline = commentOwnLine;
+        commentOwnLine = false;
+    }
+}
+<ML_COMMENT>\n|.     { /* переводы строк внутри комментария не учитываются */ }
 <ML_COMMENT><<EOF>>  { cerr << "ERROR: unterminated multi-line comment" << endl;
                        BEGIN(INITIAL); }
 
@@ -216,6 +237,8 @@ using       { return printKeyword(YYText()); }
     if (cut == 0) {                 /* "//" сюда не попадает: его правило длиннее или выше */
         yyless(2);
         mlCommentDepth = 1;
+        commentOwnLine = atLineStart;
+        skipOneGapNewline = false;
         BEGIN(ML_COMMENT);
     } else {
         if (cut != string::npos) {
@@ -229,7 +252,7 @@ using       { return printKeyword(YYText()); }
 
 ";"      { return printSeparator(YYText()); }
 
-<*>.     { cerr << "Unexpected char \'" << YYText()[0] << "\'" << endl; BEGIN(INITIAL);}
+<*>.     { cerr << "Unexpected char \'" << YYText()[0] << "\'" << endl; atLineStart = false; BEGIN(INITIAL);}
 
 %%
 
@@ -394,11 +417,25 @@ void updateRegions(TokenClass cls, const string& text) {
 }
 
 void onGap(const char* text) {
+    bool hasNewline = false;
     for (const char* p = text; *p; p++) {
         unsigned char c = (unsigned char)*p;
         if (c == '\n' || c == '\f') {
-            gapNewlineCount++;
+            hasNewline = true;
+            if (skipOneGapNewline) {
+                // первый перевод строки после блочного комментария относится
+                // к удалённой строке комментария и не порождает nl
+                skipOneGapNewline = false;
+            } else {
+                gapNewlineCount++;
+            }
         }
+    }
+    if (hasNewline) {
+        atLineStart = true;
+    } else {
+        // промежуток без перевода строки: дальше на этой же строке идёт код
+        skipOneGapNewline = false;
     }
 }
 
@@ -429,6 +466,8 @@ int onToken(TokenClass cls, const string& text, int tokenCode, bool hasValue) {
     gapNewlineCount = 0;
     updateRegions(cls, text);
     lastCanEnd = canEndStatement(cls, text);
+    atLineStart = false;
+    skipOneGapNewline = false;
     return result;
 }
 
