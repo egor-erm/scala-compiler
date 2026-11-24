@@ -581,10 +581,8 @@ generator_list:
         { $$ = EnumeratorsNode::addEnumerator(nullptr, $1); }
   | generator_list semis generator
         { $$ = EnumeratorsNode::addEnumerator($1, $3); }
-  | generator_list semis IF expr
+  | generator_list semis_e IF expr
         { $$ = EnumeratorsNode::addEnumerator($1, GeneratorNode::createGuard($4)); }
-  | generator_list IF expr
-        { $$ = EnumeratorsNode::addEnumerator($1, GeneratorNode::createGuard($3)); }
   ;
 
 generator:
@@ -607,8 +605,8 @@ case_list:
   ;
 
 case:
-    CASE ID ':' type R_ARROW block_stats
-        { $$ = CaseNode::createCase(makeId($2), $4, $6); }
+    CASE ID type_e R_ARROW block_stats
+        { $$ = CaseNode::createCase(makeId($2), $3, $5); }
   ;
 
 finally_e:
