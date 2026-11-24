@@ -132,20 +132,20 @@ InfixExprNode* InfixExprNode::createInfixFromPrefix(PrefixExprNode* prefix) {
     return node;
 }
 
-InfixExprNode* InfixExprNode::createFromInfixes(InfixExprNode* lhs, IdNode* op, InfixExprNode* rhs) {
+InfixExprNode* InfixExprNode::createFromInfixes(InfixExprNode* lhs, OperatorNode* op, InfixExprNode* rhs) {
     InfixExprNode* node = new InfixExprNode();
     node->left = lhs;
-    node->fullId = op;
+    node->op = op;
     node->right = rhs;
     return node;
 }
 
 std::string InfixExprNode::getDotLabel() const {
-    return fullId == nullptr ? "InfixExpr" : "InfixExpr [" + fullId->name + "]";
+    return op == nullptr ? "InfixExpr" : "InfixExpr [" + op->op + "]";
 }
 
 std::vector<Node*> InfixExprNode::getChildren() const {
-    return {left, fullId, right, prefixExpr};
+    return {left, op, right, prefixExpr};
 }
 
 PrefixExprNode* PrefixExprNode::createPrefixExprNode(SimpleExprNode* expr, PrefixExprType type) {
@@ -186,10 +186,10 @@ SimpleExprNode* SimpleExprNode::createBlockStmtsNode(BlockStmtsNode* stmts) {
     return node;
 }
 
-SimpleExprNode* SimpleExprNode::createSimpleExpr1Node(SimpleExpr1Node* expr) {
+SimpleExprNode* SimpleExprNode::createPrimaryExprNode(PrimaryExprNode* expr) {
     SimpleExprNode* node = new SimpleExprNode();
-    node->type = _SIMPLE_EXPR_1;
-    node->simpleExpr1 = expr;
+    node->type = _PRIMARY_EXPR;
+    node->primaryExpr = expr;
     return node;
 }
 
@@ -198,128 +198,128 @@ std::string SimpleExprNode::getDotLabel() const {
 }
 
 std::vector<Node*> SimpleExprNode::getChildren() const {
-    return {fullId, arguments, simpleType, blockStmts, simpleExpr1};
+    return {fullId, arguments, simpleType, blockStmts, primaryExpr};
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createIntNode(int value) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createIntNode(int value) {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _INT_LITERAL;
     node->intValue = value;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createCharNode(char value) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createCharNode(char value) {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _CHAR_LITERAL;
     node->charValue = value;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createDoubleNode(double value) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createDoubleNode(double value) {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _DOUBLE_LITERAL;
     node->doubleValue = value;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createStringNode(const std::string& value) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createStringNode(const std::string& value) {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _STRING_LITERAL;
     node->stringValue = value;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createBoolNode(bool value) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createBoolNode(bool value) {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _BOOL_LITERAL;
     node->boolValue = value;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createNullNode() {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createNullNode() {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _NULL_LITERAL;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createUnitLiteralNode() {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createUnitLiteralNode() {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _UNIT_LITERAL;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createIdNode(IdNode* id) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createIdNode(IdNode* id) {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _ID;
     node->identifier = id;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createPlainThisNode() {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createPlainThisNode() {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _THIS;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createSuperFieldAccessNode(IdNode* id) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createSuperFieldAccessNode(IdNode* id) {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _SUPER_FIELD_ACCESS;
     node->identifier = id;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createSimpleExprFieldAccessNode(IdNode* id, SimpleExprNode* expr) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createSimpleExprFieldAccessNode(IdNode* id, SimpleExprNode* expr) {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _FIELD_ACCESS;
     node->identifier = id;
     node->simpleExpr = expr;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createMethodCallNode(SimpleExpr1Node* target,
+PrimaryExprNode* PrimaryExprNode::createMethodCallNode(PrimaryExprNode* target,
                                                        ArgumentExprsNode* args) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _METHOD_CALL;
-    node->simpleExpr1 = target;
+    node->primaryExpr = target;
     node->argumentExprs = args == nullptr ? new ArgumentExprsNode() : args;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createMethodCallNode(SimpleExprNode* target,
+PrimaryExprNode* PrimaryExprNode::createMethodCallNode(SimpleExprNode* target,
                                                        ArgumentExprsNode* args) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _METHOD_CALL;
     node->simpleExpr = target;
     node->argumentExprs = args == nullptr ? new ArgumentExprsNode() : args;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createParenthesizedExprNode(ExprNode* parenthesized) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createParenthesizedExprNode(ExprNode* parenthesized) {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _PARENTHESIZED_EXPR;
     node->expr = parenthesized;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createArrayBuilderNode(ArgumentExprsNode* args) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+PrimaryExprNode* PrimaryExprNode::createArrayBuilderNode(ArgumentExprsNode* args) {
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _ARRAY_BUILDER;
     node->argumentExprs = args;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createArrayWithTypeBuilderNode(SimpleTypeNode* type,
+PrimaryExprNode* PrimaryExprNode::createArrayWithTypeBuilderNode(SimpleTypeNode* type,
                                                                   ArgumentExprsNode* args) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _ARRAY_WITH_TYPE_BUILDER;
     node->simpleType = type;
     node->argumentExprs = args;
     return node;
 }
 
-SimpleExpr1Node* SimpleExpr1Node::createArrayMethodNode(IdNode* method, SimpleTypeNode* type,
+PrimaryExprNode* PrimaryExprNode::createArrayMethodNode(IdNode* method, SimpleTypeNode* type,
                                                         ArgumentExprsNode* args) {
-    SimpleExpr1Node* node = new SimpleExpr1Node();
+    PrimaryExprNode* node = new PrimaryExprNode();
     node->type = _ARRAY_METHOD;
     node->identifier = method;
     node->simpleType = type;
@@ -327,7 +327,7 @@ SimpleExpr1Node* SimpleExpr1Node::createArrayMethodNode(IdNode* method, SimpleTy
     return node;
 }
 
-std::string SimpleExpr1Node::getDotLabel() const {
+std::string PrimaryExprNode::getDotLabel() const {
     switch (type) {
         case _INT_LITERAL: return "Int [" + std::to_string(intValue) + "]";
         case _CHAR_LITERAL: return std::string("Char [") + charValue + "]";
@@ -336,12 +336,12 @@ std::string SimpleExpr1Node::getDotLabel() const {
         case _BOOL_LITERAL: return std::string("Bool [") + (boolValue ? "true" : "false") + "]";
         case _NULL_LITERAL: return "Null";
         case _UNIT_LITERAL: return "Unit ()";
-        default: return "SimpleExpr1 [" + toString(type) + "]";
+        default: return "PrimaryExpr [" + toString(type) + "]";
     }
 }
 
-std::vector<Node*> SimpleExpr1Node::getChildren() const {
-    return {simpleExpr, expr, argumentExprs, simpleExpr1, identifier, simpleType};
+std::vector<Node*> PrimaryExprNode::getChildren() const {
+    return {simpleExpr, expr, argumentExprs, primaryExpr, identifier, simpleType};
 }
 
 ConstrExprNode* ConstrExprNode::createConstrExpr(ArgumentExprsNode* args, BlockStmtsNode* stmts,

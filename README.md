@@ -74,7 +74,7 @@ python files\BiVi-bison-visualizer\bivi.py out\example_parsing.txt > out\parse_t
 
 - `ClassDefNode` хранит `fullId`, `modifiers`, `classParams` и `classTemplateOpt`;
 - `FunDefNode` хранит `funSig`, возвращаемый тип и тело;
-- `SimpleExpr1Node` содержит отдельные поля для целого, `double`, строки, `char`, `bool`,
+- `PrimaryExprNode` содержит отдельные поля для целого, `double`, строки, `char`, `bool`,
   идентификатора, вызова метода и литералов;
 - `ExprNode` содержит типизированные поля ветвей `if`, циклов, `try` и перечислений `for`.
 

@@ -104,34 +104,34 @@ static IdNode* makeId(char* text) {
     return node;
 }
 
-static SimpleExpr1Node* makeIntLiteral(char* text) {
+static PrimaryExprNode* makeIntLiteral(char* text) {
     const int value = text == nullptr ? 0 : std::atoi(text);
     std::free(text);
-    return SimpleExpr1Node::createIntNode(value);
+    return PrimaryExprNode::createIntNode(value);
 }
 
-static SimpleExpr1Node* makeCharLiteral(char* text) {
+static PrimaryExprNode* makeCharLiteral(char* text) {
     const char value = text == nullptr || text[0] == '\0' ? '\0' : text[0];
     std::free(text);
-    return SimpleExpr1Node::createCharNode(value);
+    return PrimaryExprNode::createCharNode(value);
 }
 
-static SimpleExpr1Node* makeDoubleLiteral(char* text) {
+static PrimaryExprNode* makeDoubleLiteral(char* text) {
     const double value = text == nullptr ? 0.0 : std::atof(text);
     std::free(text);
-    return SimpleExpr1Node::createDoubleNode(value);
+    return PrimaryExprNode::createDoubleNode(value);
 }
 
-static SimpleExpr1Node* makeStringLiteral(char* text) {
+static PrimaryExprNode* makeStringLiteral(char* text) {
     const std::string value = text == nullptr ? "" : text;
     std::free(text);
-    return SimpleExpr1Node::createStringNode(value);
+    return PrimaryExprNode::createStringNode(value);
 }
 
-static SimpleExpr1Node* makeBoolLiteral(char* text) {
+static PrimaryExprNode* makeBoolLiteral(char* text) {
     const bool value = text != nullptr && std::strcmp(text, "true") == 0;
     std::free(text);
-    return SimpleExpr1Node::createBoolNode(value);
+    return PrimaryExprNode::createBoolNode(value);
 }
 
 static ArgumentExprsNode* makeSingleArgument(ExprNode* expr) {
@@ -2017,7 +2017,7 @@ yydestruct (const char *yymsg,
 
     case YYSYMBOL_literal: /* literal  */
 #line 203 "parser\\parser.y"
-            { deleteNodeTree(((*yyvaluep).simpleExpr1)); }
+            { deleteNodeTree(((*yyvaluep).primaryExpr)); }
 #line 2022 "parser\\parser.tab.c"
         break;
 
@@ -2935,115 +2935,115 @@ yyreduce:
 
   case 117: /* infix: infix ID nl_e infix  */
 #line 625 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), makeId((yyvsp[-2].text)), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator((yyvsp[-2].text)), (yyvsp[0].infixExpr)); std::free((yyvsp[-2].text)); }
 #line 2940 "parser\\parser.tab.c"
     break;
 
   case 118: /* infix: infix OR nl_e infix  */
 #line 627 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("||"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("||"), (yyvsp[0].infixExpr)); }
 #line 2946 "parser\\parser.tab.c"
     break;
 
   case 119: /* infix: infix AND nl_e infix  */
 #line 629 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("&&"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("&&"), (yyvsp[0].infixExpr)); }
 #line 2952 "parser\\parser.tab.c"
     break;
 
   case 120: /* infix: infix '|' nl_e infix  */
 #line 631 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("|"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("|"), (yyvsp[0].infixExpr)); }
 #line 2958 "parser\\parser.tab.c"
     break;
 
   case 121: /* infix: infix '^' nl_e infix  */
 #line 633 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("^"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("^"), (yyvsp[0].infixExpr)); }
 #line 2964 "parser\\parser.tab.c"
     break;
 
   case 122: /* infix: infix '&' nl_e infix  */
 #line 635 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("&"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("&"), (yyvsp[0].infixExpr)); }
 #line 2970 "parser\\parser.tab.c"
     break;
 
   case 123: /* infix: infix EQ nl_e infix  */
 #line 637 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("=="), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("=="), (yyvsp[0].infixExpr)); }
 #line 2976 "parser\\parser.tab.c"
     break;
 
   case 124: /* infix: infix NEQ nl_e infix  */
 #line 639 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("!="), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("!="), (yyvsp[0].infixExpr)); }
 #line 2982 "parser\\parser.tab.c"
     break;
 
   case 125: /* infix: infix '<' nl_e infix  */
 #line 641 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("<"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("<"), (yyvsp[0].infixExpr)); }
 #line 2988 "parser\\parser.tab.c"
     break;
 
   case 126: /* infix: infix '>' nl_e infix  */
 #line 643 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator(">"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator(">"), (yyvsp[0].infixExpr)); }
 #line 2994 "parser\\parser.tab.c"
     break;
 
   case 127: /* infix: infix LESS_EQ nl_e infix  */
 #line 645 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("<="), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("<="), (yyvsp[0].infixExpr)); }
 #line 3000 "parser\\parser.tab.c"
     break;
 
   case 128: /* infix: infix GREATER_EQ nl_e infix  */
 #line 647 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator(">="), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator(">="), (yyvsp[0].infixExpr)); }
 #line 3006 "parser\\parser.tab.c"
     break;
 
   case 129: /* infix: infix SHL nl_e infix  */
 #line 649 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("<<"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("<<"), (yyvsp[0].infixExpr)); }
 #line 3012 "parser\\parser.tab.c"
     break;
 
   case 130: /* infix: infix SHR nl_e infix  */
 #line 651 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator(">>"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator(">>"), (yyvsp[0].infixExpr)); }
 #line 3018 "parser\\parser.tab.c"
     break;
 
   case 131: /* infix: infix '+' nl_e infix  */
 #line 653 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("+"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("+"), (yyvsp[0].infixExpr)); }
 #line 3024 "parser\\parser.tab.c"
     break;
 
   case 132: /* infix: infix '-' nl_e infix  */
 #line 655 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("-"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("-"), (yyvsp[0].infixExpr)); }
 #line 3030 "parser\\parser.tab.c"
     break;
 
   case 133: /* infix: infix '*' nl_e infix  */
 #line 657 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("*"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("*"), (yyvsp[0].infixExpr)); }
 #line 3036 "parser\\parser.tab.c"
     break;
 
   case 134: /* infix: infix '/' nl_e infix  */
 #line 659 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("/"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("/"), (yyvsp[0].infixExpr)); }
 #line 3042 "parser\\parser.tab.c"
     break;
 
   case 135: /* infix: infix '%' nl_e infix  */
 #line 661 "parser\\parser.y"
-        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), IdNode::createOperator("%"), (yyvsp[0].infixExpr)); }
+        { (yyval.infixExpr) = InfixExprNode::createFromInfixes((yyvsp[-3].infixExpr), OperatorNode::createOperator("%"), (yyvsp[0].infixExpr)); }
 #line 3048 "parser\\parser.tab.c"
     break;
 
@@ -3091,49 +3091,49 @@ yyreduce:
 
   case 143: /* simple: literal  */
 #line 686 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createSimpleExpr1Node((yyvsp[0].simpleExpr1)); }
+        { (yyval.simpleExpr) = SimpleExprNode::createPrimaryExprNode((yyvsp[0].primaryExpr)); }
 #line 3096 "parser\\parser.tab.c"
     break;
 
   case 144: /* simple: ID  */
 #line 688 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createIdNode(makeId((yyvsp[0].text)))); }
+        { (yyval.simpleExpr) = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createIdNode(makeId((yyvsp[0].text)))); }
 #line 3103 "parser\\parser.tab.c"
     break;
 
   case 145: /* simple: THIS  */
 #line 691 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createPlainThisNode()); }
+        { (yyval.simpleExpr) = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createPlainThisNode()); }
 #line 3110 "parser\\parser.tab.c"
     break;
 
   case 146: /* simple: SUPER '.' ID  */
 #line 694 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createSuperFieldAccessNode(makeId((yyvsp[0].text)))); }
+        { (yyval.simpleExpr) = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createSuperFieldAccessNode(makeId((yyvsp[0].text)))); }
 #line 3117 "parser\\parser.tab.c"
     break;
 
   case 147: /* simple: simple '.' ID  */
 #line 697 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createSimpleExprFieldAccessNode(makeId((yyvsp[0].text)), (yyvsp[-2].simpleExpr))); }
+        { (yyval.simpleExpr) = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createSimpleExprFieldAccessNode(makeId((yyvsp[0].text)), (yyvsp[-2].simpleExpr))); }
 #line 3124 "parser\\parser.tab.c"
     break;
 
   case 148: /* simple: simple args  */
 #line 700 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createMethodCallNode((yyvsp[-1].simpleExpr), (yyvsp[0].argumentExprs))); }
+        { (yyval.simpleExpr) = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createMethodCallNode((yyvsp[-1].simpleExpr), (yyvsp[0].argumentExprs))); }
 #line 3131 "parser\\parser.tab.c"
     break;
 
   case 149: /* simple: '(' expr ')'  */
 #line 703 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createParenthesizedExprNode((yyvsp[-1].expr))); }
+        { (yyval.simpleExpr) = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createParenthesizedExprNode((yyvsp[-1].expr))); }
 #line 3138 "parser\\parser.tab.c"
     break;
 
@@ -3157,64 +3157,64 @@ yyreduce:
 
   case 153: /* simple: TARRAY args  */
 #line 712 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createArrayBuilderNode((yyvsp[0].argumentExprs))); }
+        { (yyval.simpleExpr) = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createArrayBuilderNode((yyvsp[0].argumentExprs))); }
 #line 3163 "parser\\parser.tab.c"
     break;
 
   case 154: /* simple: TARRAY '[' type ']' args  */
 #line 715 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createArrayWithTypeBuilderNode((yyvsp[-2].simpleType), (yyvsp[0].argumentExprs))); }
+        { (yyval.simpleExpr) = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createArrayWithTypeBuilderNode((yyvsp[-2].simpleType), (yyvsp[0].argumentExprs))); }
 #line 3170 "parser\\parser.tab.c"
     break;
 
   case 155: /* simple: TARRAY '.' ID '[' type ']' args  */
 #line 718 "parser\\parser.y"
-        { (yyval.simpleExpr) = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createArrayMethodNode(makeId((yyvsp[-4].text)), (yyvsp[-2].simpleType), (yyvsp[0].argumentExprs))); }
+        { (yyval.simpleExpr) = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createArrayMethodNode(makeId((yyvsp[-4].text)), (yyvsp[-2].simpleType), (yyvsp[0].argumentExprs))); }
 #line 3177 "parser\\parser.tab.c"
     break;
 
   case 156: /* literal: LITINT  */
 #line 724 "parser\\parser.y"
-        { (yyval.simpleExpr1) = makeIntLiteral((yyvsp[0].text)); }
+        { (yyval.primaryExpr) = makeIntLiteral((yyvsp[0].text)); }
 #line 3183 "parser\\parser.tab.c"
     break;
 
   case 157: /* literal: LITCHAR  */
 #line 726 "parser\\parser.y"
-        { (yyval.simpleExpr1) = makeCharLiteral((yyvsp[0].text)); }
+        { (yyval.primaryExpr) = makeCharLiteral((yyvsp[0].text)); }
 #line 3189 "parser\\parser.tab.c"
     break;
 
   case 158: /* literal: LITBOOL  */
 #line 728 "parser\\parser.y"
-        { (yyval.simpleExpr1) = makeBoolLiteral((yyvsp[0].text)); }
+        { (yyval.primaryExpr) = makeBoolLiteral((yyvsp[0].text)); }
 #line 3195 "parser\\parser.tab.c"
     break;
 
   case 159: /* literal: LITDOUBLE  */
 #line 730 "parser\\parser.y"
-        { (yyval.simpleExpr1) = makeDoubleLiteral((yyvsp[0].text)); }
+        { (yyval.primaryExpr) = makeDoubleLiteral((yyvsp[0].text)); }
 #line 3201 "parser\\parser.tab.c"
     break;
 
   case 160: /* literal: LITSTR  */
 #line 732 "parser\\parser.y"
-        { (yyval.simpleExpr1) = makeStringLiteral((yyvsp[0].text)); }
+        { (yyval.primaryExpr) = makeStringLiteral((yyvsp[0].text)); }
 #line 3207 "parser\\parser.tab.c"
     break;
 
   case 161: /* literal: KNULL  */
 #line 734 "parser\\parser.y"
-        { (yyval.simpleExpr1) = SimpleExpr1Node::createNullNode(); }
+        { (yyval.primaryExpr) = PrimaryExprNode::createNullNode(); }
 #line 3213 "parser\\parser.tab.c"
     break;
 
   case 162: /* literal: '(' ')'  */
 #line 736 "parser\\parser.y"
-        { (yyval.simpleExpr1) = SimpleExpr1Node::createUnitLiteralNode(); }
+        { (yyval.primaryExpr) = PrimaryExprNode::createUnitLiteralNode(); }
 #line 3219 "parser\\parser.tab.c"
     break;
 

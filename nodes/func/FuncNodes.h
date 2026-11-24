@@ -76,7 +76,7 @@ public:
     FunSigNode* funSig = nullptr;
     SimpleTypeNode* simpleType = nullptr;
     ExprNode* expr = nullptr;
-    SimpleExpr1Node* constrExpr = nullptr;
+    PrimaryExprNode* constrExpr = nullptr;
     bool primaryConstructor = false;
     bool secondaryConstructor = false;
 
@@ -90,7 +90,7 @@ public:
         return node;
     }
 
-    static FunDefNode* createThisConstrCallFunDef(FuncParamsNode* params, SimpleExpr1Node* call) {
+    static FunDefNode* createThisConstrCallFunDef(FuncParamsNode* params, PrimaryExprNode* call) {
         FunDefNode* node = new FunDefNode();
         node->funSig = FunSigNode::createFunSig(IdNode::createId("this"), params);
         node->constrExpr = call;

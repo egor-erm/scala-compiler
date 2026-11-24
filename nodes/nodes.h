@@ -11,6 +11,7 @@
 #include "generator/GeneratorNodes.h"
 #include "id/IdListNode.h"
 #include "id/IdNode.h"
+#include "operator/OperatorNode.h"
 #include "import/ImportNodes.h"
 #include "modifier/ModifierNodes.h"
 #include "stmts/StmtNodes.h"

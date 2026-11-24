@@ -4,6 +4,7 @@
 #include "../Node.h"
 #include "../Types.h"
 #include "../id/IdNode.h"
+#include "../operator/OperatorNode.h"
 #include "../type/SimpleTypeNode.h"
 
 #include <string>
@@ -16,7 +17,7 @@ class EnumeratorsNode;
 class InfixExprNode;
 class PrefixExprNode;
 class SimpleExprNode;
-class SimpleExpr1Node;
+class PrimaryExprNode;
 class TryExprNode;
 
 class ExprNode : public Node {
@@ -88,13 +89,13 @@ class InfixExprNode : public Node {
 public:
     InfixExprNode* left = nullptr;
     InfixExprNode* right = nullptr;
-    IdNode* fullId = nullptr;
+    OperatorNode* op = nullptr;
     PrefixExprNode* prefixExpr = nullptr;
 
     InfixExprNode() : Node("InfixExpr") {}
 
     static InfixExprNode* createInfixFromPrefix(PrefixExprNode* prefix);
-    static InfixExprNode* createFromInfixes(InfixExprNode* left, IdNode* op, InfixExprNode* right);
+    static InfixExprNode* createFromInfixes(InfixExprNode* left, OperatorNode* op, InfixExprNode* right);
     std::string getDotLabel() const override;
     std::vector<Node*> getChildren() const override;
 };
@@ -113,26 +114,26 @@ public:
 
 class SimpleExprNode : public Node {
 public:
-    SimpleExprType type = _SIMPLE_EXPR_1;
+    SimpleExprType type = _PRIMARY_EXPR;
     IdNode* fullId = nullptr;
     ArgumentExprsNode* arguments = nullptr;
     SimpleTypeNode* simpleType = nullptr;
     BlockStmtsNode* blockStmts = nullptr;
-    SimpleExpr1Node* simpleExpr1 = nullptr;
+    PrimaryExprNode* primaryExpr = nullptr;
 
     SimpleExprNode() : Node("SimpleExpr") {}
 
     static SimpleExprNode* createNewObjectNode(IdNode* id, ArgumentExprsNode* args);
     static SimpleExprNode* createNewArrayNode(SimpleTypeNode* type, ArgumentExprsNode* args);
     static SimpleExprNode* createBlockStmtsNode(BlockStmtsNode* stmts);
-    static SimpleExprNode* createSimpleExpr1Node(SimpleExpr1Node* expr);
+    static SimpleExprNode* createPrimaryExprNode(PrimaryExprNode* expr);
     std::string getDotLabel() const override;
     std::vector<Node*> getChildren() const override;
 };
 
-class SimpleExpr1Node : public Node {
+class PrimaryExprNode : public Node {
 public:
-    SimpleExpr1Type type = _ID;
+    PrimaryExprType type = _ID;
     int intValue = 0;
     char charValue = '\0';
     double doubleValue = 0.0;
@@ -141,29 +142,29 @@ public:
     SimpleExprNode* simpleExpr = nullptr;
     ExprNode* expr = nullptr;
     ArgumentExprsNode* argumentExprs = nullptr;
-    SimpleExpr1Node* simpleExpr1 = nullptr;
+    PrimaryExprNode* primaryExpr = nullptr;
     IdNode* identifier = nullptr;
     SimpleTypeNode* simpleType = nullptr;
 
-    SimpleExpr1Node() : Node("SimpleExpr1") {}
+    PrimaryExprNode() : Node("PrimaryExpr") {}
 
-    static SimpleExpr1Node* createIntNode(int value);
-    static SimpleExpr1Node* createCharNode(char value);
-    static SimpleExpr1Node* createDoubleNode(double value);
-    static SimpleExpr1Node* createStringNode(const std::string& value);
-    static SimpleExpr1Node* createBoolNode(bool value);
-    static SimpleExpr1Node* createNullNode();
-    static SimpleExpr1Node* createUnitLiteralNode();
-    static SimpleExpr1Node* createIdNode(IdNode* id);
-    static SimpleExpr1Node* createPlainThisNode();
-    static SimpleExpr1Node* createSuperFieldAccessNode(IdNode* id);
-    static SimpleExpr1Node* createSimpleExprFieldAccessNode(IdNode* id, SimpleExprNode* expr);
-    static SimpleExpr1Node* createMethodCallNode(SimpleExpr1Node* target, ArgumentExprsNode* args);
-    static SimpleExpr1Node* createMethodCallNode(SimpleExprNode* target, ArgumentExprsNode* args);
-    static SimpleExpr1Node* createParenthesizedExprNode(ExprNode* expr);
-    static SimpleExpr1Node* createArrayBuilderNode(ArgumentExprsNode* args);
-    static SimpleExpr1Node* createArrayWithTypeBuilderNode(SimpleTypeNode* type, ArgumentExprsNode* args);
-    static SimpleExpr1Node* createArrayMethodNode(IdNode* method, SimpleTypeNode* type,
+    static PrimaryExprNode* createIntNode(int value);
+    static PrimaryExprNode* createCharNode(char value);
+    static PrimaryExprNode* createDoubleNode(double value);
+    static PrimaryExprNode* createStringNode(const std::string& value);
+    static PrimaryExprNode* createBoolNode(bool value);
+    static PrimaryExprNode* createNullNode();
+    static PrimaryExprNode* createUnitLiteralNode();
+    static PrimaryExprNode* createIdNode(IdNode* id);
+    static PrimaryExprNode* createPlainThisNode();
+    static PrimaryExprNode* createSuperFieldAccessNode(IdNode* id);
+    static PrimaryExprNode* createSimpleExprFieldAccessNode(IdNode* id, SimpleExprNode* expr);
+    static PrimaryExprNode* createMethodCallNode(PrimaryExprNode* target, ArgumentExprsNode* args);
+    static PrimaryExprNode* createMethodCallNode(SimpleExprNode* target, ArgumentExprsNode* args);
+    static PrimaryExprNode* createParenthesizedExprNode(ExprNode* expr);
+    static PrimaryExprNode* createArrayBuilderNode(ArgumentExprsNode* args);
+    static PrimaryExprNode* createArrayWithTypeBuilderNode(SimpleTypeNode* type, ArgumentExprsNode* args);
+    static PrimaryExprNode* createArrayMethodNode(IdNode* method, SimpleTypeNode* type,
                                                   ArgumentExprsNode* args);
     std::string getDotLabel() const override;
     std::vector<Node*> getChildren() const override;

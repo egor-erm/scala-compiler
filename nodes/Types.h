@@ -58,10 +58,10 @@ enum SimpleExprType {
     _NEW_OBJECT,
     _NEW_ARRAY,
     _BLOCK_EXPR,
-    _SIMPLE_EXPR_1
+    _PRIMARY_EXPR
 };
 
-enum SimpleExpr1Type {
+enum PrimaryExprType {
     _INT_LITERAL,
     _CHAR_LITERAL,
     _DOUBLE_LITERAL,
@@ -95,7 +95,7 @@ std::string toString(DefinitionType type);
 std::string toString(ClassExtensionTemplateType type);
 std::string toString(ExprType type);
 std::string toString(SimpleExprType type);
-std::string toString(SimpleExpr1Type type);
+std::string toString(PrimaryExprType type);
 std::string toString(PrefixExprType type);
 
 #endif

@@ -159,7 +159,7 @@ union YYSTYPE
     InfixExprNode* infixExpr;
     PrefixExprNode* prefixExpr;
     SimpleExprNode* simpleExpr;
-    SimpleExpr1Node* simpleExpr1;
+    PrimaryExprNode* primaryExpr;
     GeneratorNode* generator;
     EnumeratorsNode* enumerators;
     CatchNode* catchNode;

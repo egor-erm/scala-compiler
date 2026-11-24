@@ -74,12 +74,12 @@ std::string toString(SimpleExprType type) {
         case _NEW_OBJECT: return "new object";
         case _NEW_ARRAY: return "new array";
         case _BLOCK_EXPR: return "block expr";
-        case _SIMPLE_EXPR_1: return "simple expr";
+        case _PRIMARY_EXPR: return "primary expr";
     }
     return "simple expr";
 }
 
-std::string toString(SimpleExpr1Type type) {
+std::string toString(PrimaryExprType type) {
     switch (type) {
         case _INT_LITERAL: return "int";
         case _CHAR_LITERAL: return "char";
@@ -98,7 +98,7 @@ std::string toString(SimpleExpr1Type type) {
         case _ARRAY_WITH_TYPE_BUILDER: return "array with type";
         case _ARRAY_METHOD: return "array method";
     }
-    return "simple expr 1";
+    return "primary expr";
 }
 
 std::string toString(PrefixExprType type) {

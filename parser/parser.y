@@ -38,34 +38,34 @@ static IdNode* makeId(char* text) {
     return node;
 }
 
-static SimpleExpr1Node* makeIntLiteral(char* text) {
+static PrimaryExprNode* makeIntLiteral(char* text) {
     const int value = text == nullptr ? 0 : std::atoi(text);
     std::free(text);
-    return SimpleExpr1Node::createIntNode(value);
+    return PrimaryExprNode::createIntNode(value);
 }
 
-static SimpleExpr1Node* makeCharLiteral(char* text) {
+static PrimaryExprNode* makeCharLiteral(char* text) {
     const char value = text == nullptr || text[0] == '\0' ? '\0' : text[0];
     std::free(text);
-    return SimpleExpr1Node::createCharNode(value);
+    return PrimaryExprNode::createCharNode(value);
 }
 
-static SimpleExpr1Node* makeDoubleLiteral(char* text) {
+static PrimaryExprNode* makeDoubleLiteral(char* text) {
     const double value = text == nullptr ? 0.0 : std::atof(text);
     std::free(text);
-    return SimpleExpr1Node::createDoubleNode(value);
+    return PrimaryExprNode::createDoubleNode(value);
 }
 
-static SimpleExpr1Node* makeStringLiteral(char* text) {
+static PrimaryExprNode* makeStringLiteral(char* text) {
     const std::string value = text == nullptr ? "" : text;
     std::free(text);
-    return SimpleExpr1Node::createStringNode(value);
+    return PrimaryExprNode::createStringNode(value);
 }
 
-static SimpleExpr1Node* makeBoolLiteral(char* text) {
+static PrimaryExprNode* makeBoolLiteral(char* text) {
     const bool value = text != nullptr && std::strcmp(text, "true") == 0;
     std::free(text);
-    return SimpleExpr1Node::createBoolNode(value);
+    return PrimaryExprNode::createBoolNode(value);
 }
 
 static ArgumentExprsNode* makeSingleArgument(ExprNode* expr) {
@@ -145,7 +145,7 @@ static SimpleTypeNode* makeArrayType(SimpleTypeNode* elementType) {
     InfixExprNode* infixExpr;
     PrefixExprNode* prefixExpr;
     SimpleExprNode* simpleExpr;
-    SimpleExpr1Node* simpleExpr1;
+    PrimaryExprNode* primaryExpr;
     GeneratorNode* generator;
     EnumeratorsNode* enumerators;
     CatchNode* catchNode;
@@ -200,7 +200,7 @@ static SimpleTypeNode* makeArrayType(SimpleTypeNode* elementType) {
 %destructor { deleteNodeTree($$); } <templateStat> <templateStats> <topStat> <topStatSeq>
 %destructor { deleteNodeTree($$); } <blockStat> <blockStats> <expr> <exprs> <argumentExprs>
 %destructor { deleteNodeTree($$); } <infixExpr> <prefixExpr> <simpleExpr>
-%destructor { deleteNodeTree($$); } <simpleExpr1> <generator> <enumerators> <catchNode>
+%destructor { deleteNodeTree($$); } <primaryExpr> <generator> <enumerators> <catchNode>
 %destructor { deleteNodeTree($$); } <caseNode> <importNode> <path>
 
 %type <topStatSeq> program top_list
@@ -234,7 +234,7 @@ static SimpleTypeNode* makeArrayType(SimpleTypeNode* elementType) {
 %type <prefixExpr> prefix
 %type <exprs> expr_list
 %type <simpleExpr> simple
-%type <simpleExpr1> literal
+%type <primaryExpr> literal
 
 %%
 
@@ -620,43 +620,43 @@ infix:
     prefix
         { $$ = InfixExprNode::createInfixFromPrefix($1); }
   | infix ID nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, makeId($2), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator($2), $4); std::free($2); }
   | infix OR nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("||"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("||"), $4); }
   | infix AND nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("&&"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("&&"), $4); }
   | infix '|' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("|"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("|"), $4); }
   | infix '^' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("^"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("^"), $4); }
   | infix '&' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("&"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("&"), $4); }
   | infix EQ nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("=="), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("=="), $4); }
   | infix NEQ nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("!="), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("!="), $4); }
   | infix '<' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("<"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("<"), $4); }
   | infix '>' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator(">"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator(">"), $4); }
   | infix LESS_EQ nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("<="), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("<="), $4); }
   | infix GREATER_EQ nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator(">="), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator(">="), $4); }
   | infix SHL nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("<<"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("<<"), $4); }
   | infix SHR nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator(">>"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator(">>"), $4); }
   | infix '+' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("+"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("+"), $4); }
   | infix '-' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("-"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("-"), $4); }
   | infix '*' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("*"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("*"), $4); }
   | infix '/' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("/"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("/"), $4); }
   | infix '%' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, IdNode::createOperator("%"), $4); }
+        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("%"), $4); }
   ;
 
 prefix:
@@ -681,25 +681,25 @@ expr_list:
 
 simple:
     literal
-        { $$ = SimpleExprNode::createSimpleExpr1Node($1); }
+        { $$ = SimpleExprNode::createPrimaryExprNode($1); }
   | ID
-        { $$ = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createIdNode(makeId($1))); }
+        { $$ = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createIdNode(makeId($1))); }
   | THIS
-        { $$ = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createPlainThisNode()); }
+        { $$ = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createPlainThisNode()); }
   | SUPER '.' ID
-        { $$ = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createSuperFieldAccessNode(makeId($3))); }
+        { $$ = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createSuperFieldAccessNode(makeId($3))); }
   | simple '.' ID
-        { $$ = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createSimpleExprFieldAccessNode(makeId($3), $1)); }
+        { $$ = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createSimpleExprFieldAccessNode(makeId($3), $1)); }
   | simple args
-        { $$ = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createMethodCallNode($1, $2)); }
+        { $$ = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createMethodCallNode($1, $2)); }
   | '(' expr ')'
-        { $$ = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createParenthesizedExprNode($2)); }
+        { $$ = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createParenthesizedExprNode($2)); }
   | '{' block_stats '}'
         { $$ = SimpleExprNode::createBlockStmtsNode($2); }
   | NEW ID args
@@ -707,14 +707,14 @@ simple:
   | NEW TARRAY '[' type ']' '(' expr ')'
         { $$ = SimpleExprNode::createNewArrayNode($4, makeSingleArgument($7)); }
   | TARRAY args
-        { $$ = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createArrayBuilderNode($2)); }
+        { $$ = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createArrayBuilderNode($2)); }
   | TARRAY '[' type ']' args
-        { $$ = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createArrayWithTypeBuilderNode($3, $5)); }
+        { $$ = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createArrayWithTypeBuilderNode($3, $5)); }
   | TARRAY '.' ID '[' type ']' args
-        { $$ = SimpleExprNode::createSimpleExpr1Node(
-              SimpleExpr1Node::createArrayMethodNode(makeId($3), $5, $7)); }
+        { $$ = SimpleExprNode::createPrimaryExprNode(
+              PrimaryExprNode::createArrayMethodNode(makeId($3), $5, $7)); }
   ;
 
 literal:
@@ -729,9 +729,9 @@ literal:
   | LITSTR
         { $$ = makeStringLiteral($1); }
   | KNULL
-        { $$ = SimpleExpr1Node::createNullNode(); }
+        { $$ = PrimaryExprNode::createNullNode(); }
   | '(' ')'
-        { $$ = SimpleExpr1Node::createUnitLiteralNode(); }
+        { $$ = PrimaryExprNode::createUnitLiteralNode(); }
   ;
 
 %%
