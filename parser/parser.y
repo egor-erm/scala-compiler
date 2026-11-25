@@ -239,499 +239,325 @@ static SimpleTypeNode* makeArrayType(SimpleTypeNode* elementType) {
 %%
 
 program:
-    semis_e
-        { $$ = nullptr; *out_root = new TopStmtSeqNode(); }
-  | semis_e top_list semis_e
-        { $$ = nullptr; *out_root = $2; }
-  ;
+         semis_e { $$ = nullptr; *out_root = new TopStmtSeqNode(); }
+       | semis_e top_list semis_e { $$ = nullptr; *out_root = $2; }
+       ;
 
 top_list:
-    top_stat
-        { $$ = TopStmtSeqNode::addTopStmtToList(nullptr, $1); }
-  | top_list semis top_stat
-        { $$ = TopStmtSeqNode::addTopStmtToList($1, $3); }
-  ;
+          top_stat { $$ = TopStmtSeqNode::addTopStmtToList(nullptr, $1); }
+        | top_list semis top_stat { $$ = TopStmtSeqNode::addTopStmtToList($1, $3); }
+        ;
 
 top_stat:
-    import
-        { $$ = TopStmtNode::createImport($1); }
-  | class_def
-        { $$ = TopStmtNode::createClass(TemplateDefNode::createClassDef($1)); }
-  ;
+          import { $$ = TopStmtNode::createImport($1); }
+        | class_def { $$ = TopStmtNode::createClass(TemplateDefNode::createClassDef($1)); }
+        ;
 
 import:
-    IMPORT path
-        { $$ = ImportNode::createImport($2); }
-  ;
+        IMPORT path { $$ = ImportNode::createImport($2); }
+      ;
 
 path:
-    ID
-        { $$ = PathNode::addPart(nullptr, makeId($1)); }
-  | path '.' ID
-        { $$ = PathNode::addPart($1, makeId($3)); }
-  ;
+      ID { $$ = PathNode::addPart(nullptr, makeId($1)); }
+    | path '.' ID { $$ = PathNode::addPart($1, makeId($3)); }
+    ;
 
 semi:
-    ';'
-  | NL
-  ;
+      ';'
+    | NL
+    ;
 
 semis:
-    semi
-  | semis semi
-  ;
+       semi
+     | semis semi
+     ;
 
 semis_e:
-    /* empty */
-  | semis
-  ;
+         /* empty */
+       | semis
+       ;
 
 nls:
-    /* empty */
-  | nls NL
-  ;
+     /* empty */
+   | nls NL
+   ;
 
 nl_e:
-    /* empty */
-  | NL
-  ;
+      /* empty */
+    | NL
+    ;
 
 stmt:
-    def
-        { $$ = TemplateStmtNode::createDefTemplate($1); }
-  | expr
-        { $$ = TemplateStmtNode::createExprTemplate($1); }
-  ;
+      def { $$ = TemplateStmtNode::createDefTemplate($1); }
+    | expr { $$ = TemplateStmtNode::createExprTemplate($1); }
+    ;
 
 def:
-    func_def
-        { $$ = $1; }
-  | var_def
-        { $$ = $1; }
-  ;
+     func_def { $$ = $1; }
+   | var_def { $$ = $1; }
+   ;
 
 def_prefix:
-    ABSTRACT
-        { $$ = ModifierNode::createModifier(_ABSTRACT); }
-  | SEALED
-        { $$ = ModifierNode::createModifier(_SEALED); }
-  | FINAL
-        { $$ = ModifierNode::createModifier(_FINAL); }
-  | OVERRIDE
-        { $$ = ModifierNode::createModifier(_OVERRIDE); }
-  | PRIVATE
-        { $$ = ModifierNode::createModifier(_PRIVATE); }
-  | PROTECTED
-        { $$ = ModifierNode::createModifier(_PROTECTED); }
-  ;
+            ABSTRACT { $$ = ModifierNode::createModifier(_ABSTRACT); }
+          | SEALED { $$ = ModifierNode::createModifier(_SEALED); }
+          | FINAL { $$ = ModifierNode::createModifier(_FINAL); }
+          | OVERRIDE { $$ = ModifierNode::createModifier(_OVERRIDE); }
+          | PRIVATE { $$ = ModifierNode::createModifier(_PRIVATE); }
+          | PROTECTED { $$ = ModifierNode::createModifier(_PROTECTED); }
+          ;
 
 def_prefix_list:
-    /* empty */
-        { $$ = new ModifiersNode(); }
-  | def_prefix_list def_prefix
-        { $$ = ModifiersNode::addModifierToList($1, $2); }
-  ;
+                 /* empty */ { $$ = new ModifiersNode(); }
+               | def_prefix_list def_prefix { $$ = ModifiersNode::addModifierToList($1, $2); }
+               ;
 
 class_def:
-    def_prefix_list CLASS ID class_tail
-        { $$ = ClassDefNode::createClassDef(makeId($3), $1, nullptr, $4); }
-  | def_prefix_list CLASS ID class_fields class_tail
-        { $$ = ClassDefNode::createClassDef(makeId($3), $1, $4, $5); }
-  | def_prefix_list OBJECT ID class_tail
-        { $$ = ClassDefNode::createObjectDef(makeId($3), $1, $4); }
-  ;
+           def_prefix_list CLASS ID class_tail { $$ = ClassDefNode::createClassDef(makeId($3), $1, nullptr, $4); }
+         | def_prefix_list CLASS ID class_fields class_tail { $$ = ClassDefNode::createClassDef(makeId($3), $1, $4, $5); }
+         | def_prefix_list OBJECT ID class_tail { $$ = ClassDefNode::createObjectDef(makeId($3), $1, $4); }
+         ;
 
 class_fields:
-    nls '(' ')'
-        { $$ = new ClassParamsNode(); }
-  | nls '(' field_list ')'
-        { $$ = $3; }
-  ;
+              nls '(' ')' { $$ = new ClassParamsNode(); }
+            | nls '(' field_list ')' { $$ = $3; }
+            ;
 
 class_tail:
-    class_body
-        { $$ = ClassTemplateOptNode::createClassWithoutInherit($1); }
-  | EXTENDS ID args_e class_body
-        { $$ = ClassTemplateOptNode::createClassWithInherit(
-              ExtensionClassTemplateNode::createExtendWithConstrAndBody(
-                  makeId($2), $3, $4)); }
-  ;
+            class_body { $$ = ClassTemplateOptNode::createClassWithoutInherit($1); }
+          | EXTENDS ID args_e class_body { $$ = ClassTemplateOptNode::createClassWithInherit(ExtensionClassTemplateNode::createExtendWithConstrAndBody(makeId($2), $3, $4)); }
+          ;
 
 args_e:
-    /* empty */
-        { $$ = new ArgumentExprsNode(); }
-  | args
-        { $$ = $1; }
-  ;
+        /* empty */ { $$ = new ArgumentExprsNode(); }
+      | args { $$ = $1; }
+      ;
 
 args:
-    '(' ')'
-        { $$ = new ArgumentExprsNode(); }
-  | '(' expr_list ')'
-        { $$ = new ArgumentExprsNode($2); }
-  ;
+      '(' ')' { $$ = new ArgumentExprsNode(); }
+    | '(' expr_list ')' { $$ = new ArgumentExprsNode($2); }
+    ;
 
 class_body:
-    nls '{' stmt_list_e '}'
-        { $$ = $3; }
-  ;
+            nls '{' stmt_list_e '}' { $$ = $3; }
+          ;
 
 stmt_list_e:
-    semis_e
-        { $$ = new TemplateStmtsNode(); }
-  | semis_e stmt_list semis_e
-        { $$ = $2; }
-  ;
+             semis_e { $$ = new TemplateStmtsNode(); }
+           | semis_e stmt_list semis_e { $$ = $2; }
+           ;
 
 stmt_list:
-    stmt
-        { $$ = TemplateStmtsNode::addTemplateStmtToBackToList(nullptr, $1); }
-  | stmt_list semis stmt
-        { $$ = TemplateStmtsNode::addTemplateStmtToBackToList($1, $3); }
-  ;
+           stmt { $$ = TemplateStmtsNode::addTemplateStmtToBackToList(nullptr, $1); }
+         | stmt_list semis stmt { $$ = TemplateStmtsNode::addTemplateStmtToBackToList($1, $3); }
+         ;
 
 id_list:
-    ID
-        { $$ = IdListNode::addId(nullptr, makeId($1)); }
-  | id_list ',' ID
-        { $$ = IdListNode::addId($1, makeId($3)); }
-  ;
+         ID { $$ = IdListNode::addId(nullptr, makeId($1)); }
+       | id_list ',' ID { $$ = IdListNode::addId($1, makeId($3)); }
+       ;
 
 field_list:
-    field
-        { $$ = ClassParamsNode::addClassParamToList(nullptr, $1); }
-  | field_list ',' field
-        { $$ = ClassParamsNode::addClassParamToList($1, $3); }
-  ;
+            field { $$ = ClassParamsNode::addClassParamToList(nullptr, $1); }
+          | field_list ',' field { $$ = ClassParamsNode::addClassParamToList($1, $3); }
+          ;
 
 field:
-    ID ':' type
-        { $$ = ClassParamNode::createClassParam(_UNMARKED_CLASS_PARAM,
-              new ModifiersNode(), makeId($1), $3); }
-  | def_prefix_list val_or_var ID ':' type
-        { $$ = ClassParamNode::createClassParam($2, $1, makeId($3), $5); }
-  ;
+       ID ':' type { $$ = ClassParamNode::createClassParam(_UNMARKED_CLASS_PARAM, new ModifiersNode(), makeId($1), $3); }
+     | def_prefix_list val_or_var ID ':' type { $$ = ClassParamNode::createClassParam($2, $1, makeId($3), $5); }
+     ;
 
 val_or_var:
-    VAL
-        { $$ = _VAL_CLASS_PARAM; }
-  | VAR
-        { $$ = _VAR_CLASS_PARAM; }
-  ;
+            VAL { $$ = _VAL_CLASS_PARAM; }
+          | VAR { $$ = _VAR_CLASS_PARAM; }
+          ;
 
 func_def:
-    def_prefix_list DEF ID params_e type_e '=' expr
-        { $$ = DefNode::createFunDef(FunDefNode::createFunSigFunDef(
-              FunSigNode::createFunSig(makeId($3), $4), $5, $7), $1); }
-  | def_prefix_list DEF ID params_e ':' type
-        { $$ = DefNode::createFunDef(FunDefNode::createFunSigFunDef(
-              FunSigNode::createFunSig(makeId($3), $4), $6, nullptr), $1); }
-  | def_prefix_list DEF THIS params_e '=' expr
-        { $$ = DefNode::createFunDef(
-              FunDefNode::createThisConstrCallFunDef($4, $6), $1); }
-  ;
+          def_prefix_list DEF ID params_e type_e '=' expr { $$ = DefNode::createFunDef(FunDefNode::createFunSigFunDef(FunSigNode::createFunSig(makeId($3), $4), $5, $7), $1); }
+        | def_prefix_list DEF ID params_e ':' type { $$ = DefNode::createFunDef(FunDefNode::createFunSigFunDef(FunSigNode::createFunSig(makeId($3), $4), $6, nullptr), $1); }
+        | def_prefix_list DEF THIS params_e '=' expr { $$ = DefNode::createFunDef(FunDefNode::createThisConstrCallFunDef($4, $6), $1); }
+        ;
 
 var_def:
-    def_prefix_list val_or_var id_list type_e '=' expr
-        { $$ = DefNode::createVarDefs(makeVarDefs($1, $2, $3, $4, $6), nullptr); }
-  | def_prefix_list val_or_var id_list ':' type
-        { $$ = DefNode::createVarDefs(makeVarDefs($1, $2, $3, $5, nullptr), nullptr); }
-  ;
+         def_prefix_list val_or_var id_list type_e '=' expr { $$ = DefNode::createVarDefs(makeVarDefs($1, $2, $3, $4, $6), nullptr); }
+       | def_prefix_list val_or_var id_list ':' type { $$ = DefNode::createVarDefs(makeVarDefs($1, $2, $3, $5, nullptr), nullptr); }
+       ;
 
 params_e:
-    /* empty */
-        { $$ = new FuncParamsNode(); }
-  | nl_e '(' param_list_e ')'
-        { $$ = $3; }
-  ;
+          /* empty */ { $$ = new FuncParamsNode(); }
+        | nl_e '(' param_list_e ')' { $$ = $3; }
+        ;
 
 param_list_e:
-    /* empty */
-        { $$ = new FuncParamsNode(); }
-  | param_list
-        { $$ = $1; }
-  ;
+              /* empty */ { $$ = new FuncParamsNode(); }
+            | param_list { $$ = $1; }
+            ;
 
 param_list:
-    param
-        { $$ = FuncParamsNode::addFuncParamToList(nullptr, $1); }
-  | param_list ',' param
-        { $$ = FuncParamsNode::addFuncParamToList($1, $3); }
-  ;
+            param { $$ = FuncParamsNode::addFuncParamToList(nullptr, $1); }
+          | param_list ',' param { $$ = FuncParamsNode::addFuncParamToList($1, $3); }
+          ;
 
 param:
-    ID ':' type
-        { $$ = FuncParamNode::createFuncParam(makeId($1), $3); }
-  ;
+       ID ':' type { $$ = FuncParamNode::createFuncParam(makeId($1), $3); }
+     ;
 
 type:
-    ID
-        { $$ = SimpleTypeNode::createIdTypeNode(makeId($1)); }
-  | ID '.' ID
-        { $$ = SimpleTypeNode::createIdTypeNode(
-              IdNode::createId(std::string($1) + "." + $3)); std::free($1); std::free($3); }
-  | TARRAY '[' type ']'
-        { $$ = makeArrayType($3); }
-  ;
+      ID { $$ = SimpleTypeNode::createIdTypeNode(makeId($1)); }
+    | ID '.' ID { $$ = SimpleTypeNode::createIdTypeNode(IdNode::createId(std::string($1) + "." + $3)); std::free($1); std::free($3); }
+    | TARRAY '[' type ']' { $$ = makeArrayType($3); }
+    ;
 
 type_e:
-    /* empty */
-        { $$ = nullptr; }
-  | ':' type
-        { $$ = $2; }
-  ;
+        /* empty */ { $$ = nullptr; }
+      | ':' type { $$ = $2; }
+      ;
 
 block_stats:
-    semis_e
-        { $$ = new BlockStmtsNode(); }
-  | semis_e block_list semis_e
-        { $$ = $2; }
-  ;
+             semis_e { $$ = new BlockStmtsNode(); }
+           | semis_e block_list semis_e { $$ = $2; }
+           ;
 
 block_list:
-    block_stat
-        { $$ = BlockStmtsNode::addBlockStmtToList(nullptr, $1); }
-  | block_list semis block_stat
-        { $$ = BlockStmtsNode::addBlockStmtToList($1, $3); }
-  ;
+            block_stat { $$ = BlockStmtsNode::addBlockStmtToList(nullptr, $1); }
+          | block_list semis block_stat { $$ = BlockStmtsNode::addBlockStmtToList($1, $3); }
+          ;
 
 block_stat:
-    local_def
-        { $$ = BlockStmtNode::createLocalDef($1); }
-  | expr
-        { $$ = BlockStmtNode::createExprNode($1); }
-  ;
+            local_def { $$ = BlockStmtNode::createLocalDef($1); }
+          | expr { $$ = BlockStmtNode::createExprNode($1); }
+          ;
 
 local_def:
-    val_or_var id_list type_e '=' expr
-        { $$ = makeVarDefs(new ModifiersNode(), $1, $2, $3, $5); }
-  ;
+           val_or_var id_list type_e '=' expr { $$ = makeVarDefs(new ModifiersNode(), $1, $2, $3, $5); }
+         ;
 
 expr:
-    if_expr
-        { $$ = $1; }
-  | while_expr
-        { $$ = $1; }
-  | do_while_expr
-        { $$ = $1; }
-  | for_expr
-        { $$ = $1; }
-  | TRY expr catch_e finally_e
-        { $$ = ExprNode::createTry(TryExprNode::createExceptionBlock($2, $3, $4)); }
-  | THROW expr
-        { $$ = ExprNode::createThrow($2); }
-  | RETURN %prec RETURN_EMPTY
-        { $$ = ExprNode::createReturn(); }
-  | RETURN expr
-        { $$ = ExprNode::createReturnExpr($2); }
-  | simple '=' expr
-        { $$ = ExprNode::createAssignment(
-              AssignmentNode::createAssignment($1, $3, "=")); }
-  | simple PLUS_ASSIGN nl_e expr
-        { $$ = ExprNode::createAssignment(
-              AssignmentNode::createAssignment($1, $4, "+=")); }
-  | simple MINUS_ASSIGN nl_e expr
-        { $$ = ExprNode::createAssignment(
-              AssignmentNode::createAssignment($1, $4, "-=")); }
-  | simple STAR_ASSIGN nl_e expr
-        { $$ = ExprNode::createAssignment(
-              AssignmentNode::createAssignment($1, $4, "*=")); }
-  | simple SLASH_ASSIGN nl_e expr
-        { $$ = ExprNode::createAssignment(
-              AssignmentNode::createAssignment($1, $4, "/=")); }
-  | simple PERCENT_ASSIGN nl_e expr
-        { $$ = ExprNode::createAssignment(
-              AssignmentNode::createAssignment($1, $4, "%=")); }
-  | simple AND_ASSIGN nl_e expr
-        { $$ = ExprNode::createAssignment(
-              AssignmentNode::createAssignment($1, $4, "&=")); }
-  | simple OR_ASSIGN nl_e expr
-        { $$ = ExprNode::createAssignment(
-              AssignmentNode::createAssignment($1, $4, "|=")); }
-  | infix
-        { $$ = ExprNode::createInfix($1); }
-  ;
+      if_expr { $$ = $1; }
+    | while_expr { $$ = $1; }
+    | do_while_expr { $$ = $1; }
+    | for_expr { $$ = $1; }
+    | TRY expr catch_e finally_e { $$ = ExprNode::createTry(TryExprNode::createExceptionBlock($2, $3, $4)); }
+    | THROW expr { $$ = ExprNode::createThrow($2); }
+    | RETURN %prec RETURN_EMPTY { $$ = ExprNode::createReturn(); }
+    | RETURN expr { $$ = ExprNode::createReturnExpr($2); }
+    | simple '=' expr { $$ = ExprNode::createAssignment(AssignmentNode::createAssignment($1, $3, "=")); }
+    | simple PLUS_ASSIGN nl_e expr { $$ = ExprNode::createAssignment(AssignmentNode::createAssignment($1, $4, "+=")); }
+    | simple MINUS_ASSIGN nl_e expr { $$ = ExprNode::createAssignment(AssignmentNode::createAssignment($1, $4, "-=")); }
+    | simple STAR_ASSIGN nl_e expr { $$ = ExprNode::createAssignment(AssignmentNode::createAssignment($1, $4, "*=")); }
+    | simple SLASH_ASSIGN nl_e expr { $$ = ExprNode::createAssignment(AssignmentNode::createAssignment($1, $4, "/=")); }
+    | simple PERCENT_ASSIGN nl_e expr { $$ = ExprNode::createAssignment(AssignmentNode::createAssignment($1, $4, "%=")); }
+    | simple AND_ASSIGN nl_e expr { $$ = ExprNode::createAssignment(AssignmentNode::createAssignment($1, $4, "&=")); }
+    | simple OR_ASSIGN nl_e expr { $$ = ExprNode::createAssignment(AssignmentNode::createAssignment($1, $4, "|=")); }
+    | infix { $$ = ExprNode::createInfix($1); }
+    ;
 
 if_expr:
-    IF '(' expr ')' nls expr %prec IF_EXPR
-        { $$ = ExprNode::createIf($3, $6); }
-  | IF '(' expr ')' nls expr ELSE expr
-        { $$ = ExprNode::createIfElse($3, $6, $8); }
-  ;
+         IF '(' expr ')' nls expr %prec IF_EXPR { $$ = ExprNode::createIf($3, $6); }
+       | IF '(' expr ')' nls expr ELSE expr { $$ = ExprNode::createIfElse($3, $6, $8); }
+       ;
 
 while_expr:
-    WHILE '(' expr ')' nls expr
-        { $$ = ExprNode::createWhile($3, $6); }
-  ;
+            WHILE '(' expr ')' nls expr { $$ = ExprNode::createWhile($3, $6); }
+          ;
 
 do_while_expr:
-    DO expr semis_e WHILE '(' expr ')'
-        { $$ = ExprNode::createDoWhile($2, $6); }
-  ;
+               DO expr semis_e WHILE '(' expr ')' { $$ = ExprNode::createDoWhile($2, $6); }
+             ;
 
 for_expr:
-    FOR '(' generator_list ')' nls expr
-        { $$ = ExprNode::createFor($3, $6); }
-  | FOR '{' semis_e generator_list semis_e '}' nls expr
-        { $$ = ExprNode::createFor($4, $8); }
-  ;
+          FOR '(' generator_list ')' nls expr { $$ = ExprNode::createFor($3, $6); }
+        | FOR '{' semis_e generator_list semis_e '}' nls expr { $$ = ExprNode::createFor($4, $8); }
+        ;
 
 generator_list:
-    generator
-        { $$ = EnumeratorsNode::addEnumerator(nullptr, $1); }
-  | generator_list semis generator
-        { $$ = EnumeratorsNode::addEnumerator($1, $3); }
-  | generator_list semis_e IF expr
-        { $$ = EnumeratorsNode::addEnumerator($1, GeneratorNode::createGuard($4)); }
-  ;
+                generator { $$ = EnumeratorsNode::addEnumerator(nullptr, $1); }
+              | generator_list semis generator { $$ = EnumeratorsNode::addEnumerator($1, $3); }
+              | generator_list semis_e IF expr { $$ = EnumeratorsNode::addEnumerator($1, GeneratorNode::createGuard($4)); }
+              ;
 
 generator:
-    ID L_ARROW expr
-        { $$ = GeneratorNode::createGenerator(makeId($1), nullptr, $3); }
-  ;
+           ID L_ARROW expr { $$ = GeneratorNode::createGenerator(makeId($1), nullptr, $3); }
+         ;
 
 catch_e:
-    /* empty */
-        { $$ = nullptr; }
-  | CATCH '{' case_list '}'
-        { $$ = $3; }
-  ;
+         /* empty */ { $$ = nullptr; }
+       | CATCH '{' case_list '}' { $$ = $3; }
+       ;
 
 case_list:
-    case
-        { $$ = CatchNode::addCase(nullptr, $1); }
-  | case_list case
-        { $$ = CatchNode::addCase($1, $2); }
-  ;
+           case { $$ = CatchNode::addCase(nullptr, $1); }
+         | case_list case { $$ = CatchNode::addCase($1, $2); }
+         ;
 
 case:
-    CASE ID type_e R_ARROW block_stats
-        { $$ = CaseNode::createCase(makeId($2), $3, $5); }
-  ;
+      CASE ID type_e R_ARROW block_stats { $$ = CaseNode::createCase(makeId($2), $3, $5); }
+    ;
 
 finally_e:
-    /* empty */
-        { $$ = nullptr; }
-  | FINALLY expr
-        { $$ = $2; }
-  ;
+           /* empty */ { $$ = nullptr; }
+         | FINALLY expr { $$ = $2; }
+         ;
 
 infix:
-    prefix
-        { $$ = InfixExprNode::createInfixFromPrefix($1); }
-  | infix ID nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator($2), $4); std::free($2); }
-  | infix OR nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("||"), $4); }
-  | infix AND nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("&&"), $4); }
-  | infix '|' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("|"), $4); }
-  | infix '^' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("^"), $4); }
-  | infix '&' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("&"), $4); }
-  | infix EQ nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("=="), $4); }
-  | infix NEQ nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("!="), $4); }
-  | infix '<' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("<"), $4); }
-  | infix '>' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator(">"), $4); }
-  | infix LESS_EQ nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("<="), $4); }
-  | infix GREATER_EQ nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator(">="), $4); }
-  | infix SHL nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("<<"), $4); }
-  | infix SHR nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator(">>"), $4); }
-  | infix '+' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("+"), $4); }
-  | infix '-' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("-"), $4); }
-  | infix '*' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("*"), $4); }
-  | infix '/' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("/"), $4); }
-  | infix '%' nl_e infix
-        { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("%"), $4); }
-  ;
+       prefix { $$ = InfixExprNode::createInfixFromPrefix($1); }
+     | infix ID nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator($2), $4); std::free($2); }
+     | infix OR nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("||"), $4); }
+     | infix AND nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("&&"), $4); }
+     | infix '|' nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("|"), $4); }
+     | infix '^' nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("^"), $4); }
+     | infix '&' nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("&"), $4); }
+     | infix EQ nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("=="), $4); }
+     | infix NEQ nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("!="), $4); }
+     | infix '<' nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("<"), $4); }
+     | infix '>' nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator(">"), $4); }
+     | infix LESS_EQ nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("<="), $4); }
+     | infix GREATER_EQ nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator(">="), $4); }
+     | infix SHL nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("<<"), $4); }
+     | infix SHR nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator(">>"), $4); }
+     | infix '+' nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("+"), $4); }
+     | infix '-' nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("-"), $4); }
+     | infix '*' nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("*"), $4); }
+     | infix '/' nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("/"), $4); }
+     | infix '%' nl_e infix { $$ = InfixExprNode::createFromInfixes($1, OperatorNode::createOperator("%"), $4); }
+     ;
 
 prefix:
-    simple
-        { $$ = PrefixExprNode::createPrefixExprNode($1, _NO_UNARY_OPERATOR); }
-  | '-' simple
-        { $$ = PrefixExprNode::createPrefixExprNode($2, _UNARY_MINUS); }
-  | '+' simple
-        { $$ = PrefixExprNode::createPrefixExprNode($2, _UNARY_PLUS); }
-  | '!' simple
-        { $$ = PrefixExprNode::createPrefixExprNode($2, _LOGICAL_NOT); }
-  | '~' simple
-        { $$ = PrefixExprNode::createPrefixExprNode($2, _BIT_NOT); }
-  ;
+        simple { $$ = PrefixExprNode::createPrefixExprNode($1, _NO_UNARY_OPERATOR); }
+      | '-' simple { $$ = PrefixExprNode::createPrefixExprNode($2, _UNARY_MINUS); }
+      | '+' simple { $$ = PrefixExprNode::createPrefixExprNode($2, _UNARY_PLUS); }
+      | '!' simple { $$ = PrefixExprNode::createPrefixExprNode($2, _LOGICAL_NOT); }
+      | '~' simple { $$ = PrefixExprNode::createPrefixExprNode($2, _BIT_NOT); }
+      ;
 
 expr_list:
-    expr
-        { $$ = ExprsNode::addExprToList(nullptr, $1); }
-  | expr_list ',' expr
-        { $$ = ExprsNode::addExprToList($1, $3); }
-  ;
+           expr { $$ = ExprsNode::addExprToList(nullptr, $1); }
+         | expr_list ',' expr { $$ = ExprsNode::addExprToList($1, $3); }
+         ;
 
 simple:
-    literal
-        { $$ = SimpleExprNode::createPrimaryExprNode($1); }
-  | ID
-        { $$ = SimpleExprNode::createPrimaryExprNode(
-              PrimaryExprNode::createIdNode(makeId($1))); }
-  | THIS
-        { $$ = SimpleExprNode::createPrimaryExprNode(
-              PrimaryExprNode::createPlainThisNode()); }
-  | SUPER '.' ID
-        { $$ = SimpleExprNode::createPrimaryExprNode(
-              PrimaryExprNode::createSuperFieldAccessNode(makeId($3))); }
-  | simple '.' ID
-        { $$ = SimpleExprNode::createPrimaryExprNode(
-              PrimaryExprNode::createSimpleExprFieldAccessNode(makeId($3), $1)); }
-  | simple args
-        { $$ = SimpleExprNode::createPrimaryExprNode(
-              PrimaryExprNode::createMethodCallNode($1, $2)); }
-  | '(' expr ')'
-        { $$ = SimpleExprNode::createPrimaryExprNode(
-              PrimaryExprNode::createParenthesizedExprNode($2)); }
-  | '{' block_stats '}'
-        { $$ = SimpleExprNode::createBlockStmtsNode($2); }
-  | NEW ID args
-        { $$ = SimpleExprNode::createNewObjectNode(makeId($2), $3); }
-  | NEW TARRAY '[' type ']' '(' expr ')'
-        { $$ = SimpleExprNode::createNewArrayNode($4, makeSingleArgument($7)); }
-  | TARRAY args
-        { $$ = SimpleExprNode::createPrimaryExprNode(
-              PrimaryExprNode::createArrayBuilderNode($2)); }
-  | TARRAY '[' type ']' args
-        { $$ = SimpleExprNode::createPrimaryExprNode(
-              PrimaryExprNode::createArrayWithTypeBuilderNode($3, $5)); }
-  | TARRAY '.' ID '[' type ']' args
-        { $$ = SimpleExprNode::createPrimaryExprNode(
-              PrimaryExprNode::createArrayMethodNode(makeId($3), $5, $7)); }
-  ;
+        literal { $$ = SimpleExprNode::createPrimaryExprNode($1); }
+      | ID { $$ = SimpleExprNode::createPrimaryExprNode(PrimaryExprNode::createIdNode(makeId($1))); }
+      | THIS { $$ = SimpleExprNode::createPrimaryExprNode(PrimaryExprNode::createPlainThisNode()); }
+      | SUPER '.' ID { $$ = SimpleExprNode::createPrimaryExprNode(PrimaryExprNode::createSuperFieldAccessNode(makeId($3))); }
+      | simple '.' ID { $$ = SimpleExprNode::createPrimaryExprNode(PrimaryExprNode::createSimpleExprFieldAccessNode(makeId($3), $1)); }
+      | simple args { $$ = SimpleExprNode::createPrimaryExprNode(PrimaryExprNode::createMethodCallNode($1, $2)); }
+      | '(' expr ')' { $$ = SimpleExprNode::createPrimaryExprNode(PrimaryExprNode::createParenthesizedExprNode($2)); }
+      | '{' block_stats '}' { $$ = SimpleExprNode::createBlockStmtsNode($2); }
+      | NEW ID args { $$ = SimpleExprNode::createNewObjectNode(makeId($2), $3); }
+      | NEW TARRAY '[' type ']' '(' expr ')' { $$ = SimpleExprNode::createNewArrayNode($4, makeSingleArgument($7)); }
+      | TARRAY args { $$ = SimpleExprNode::createPrimaryExprNode(PrimaryExprNode::createArrayBuilderNode($2)); }
+      | TARRAY '[' type ']' args { $$ = SimpleExprNode::createPrimaryExprNode(PrimaryExprNode::createArrayWithTypeBuilderNode($3, $5)); }
+      | TARRAY '.' ID '[' type ']' args { $$ = SimpleExprNode::createPrimaryExprNode(PrimaryExprNode::createArrayMethodNode(makeId($3), $5, $7)); }
+      ;
 
 literal:
-    LITINT
-        { $$ = makeIntLiteral($1); }
-  | LITCHAR
-        { $$ = makeCharLiteral($1); }
-  | LITBOOL
-        { $$ = makeBoolLiteral($1); }
-  | LITDOUBLE
-        { $$ = makeDoubleLiteral($1); }
-  | LITSTR
-        { $$ = makeStringLiteral($1); }
-  | KNULL
-        { $$ = PrimaryExprNode::createNullNode(); }
-  | '(' ')'
-        { $$ = PrimaryExprNode::createUnitLiteralNode(); }
-  ;
+         LITINT { $$ = makeIntLiteral($1); }
+       | LITCHAR { $$ = makeCharLiteral($1); }
+       | LITBOOL { $$ = makeBoolLiteral($1); }
+       | LITDOUBLE { $$ = makeDoubleLiteral($1); }
+       | LITSTR { $$ = makeStringLiteral($1); }
+       | KNULL { $$ = PrimaryExprNode::createNullNode(); }
+       | '(' ')' { $$ = PrimaryExprNode::createUnitLiteralNode(); }
+       ;
 
 %%
